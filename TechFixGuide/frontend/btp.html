@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1A1A2E" />
+  <title>BTP Tool 2026 – TechFix Guide</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .btp-page{padding:2rem 0 8rem}
+    .btp-header{text-align:center;padding:2.5rem 0 2rem}
+    .btp-header .badge-v{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;background:rgba(124,252,0,.08);border:1px solid rgba(124,252,0,.25);border-radius:999px;font-size:.72rem;font-weight:700;color:var(--primary);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem}
+    .btp-header h1{font-size:clamp(1.8rem,4vw,2.8rem)}
+    .btp-header h1 span{color:var(--primary)}
+    .btp-header p{font-size:.95rem;color:var(--text-secondary);margin-top:.5rem}
+    .cat-sec{margin-bottom:2.5rem}
+    .cat-lbl{display:flex;align-items:center;gap:10px;font-size:.72rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem}
+    .cat-lbl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+    .mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:.85rem}
+    .mbtn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:1rem 1.2rem;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .2s;text-align:left;position:relative;overflow:hidden;width:100%}
+    .mbtn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,252,0,.05) 0%,transparent 60%);opacity:0;transition:opacity .2s}
+    .mbtn:hover{border-color:rgba(124,252,0,.3);transform:translateY(-1px)}
+    .mbtn:hover::before{opacity:1}
+    .mbtn:active{transform:scale(.98)}
+    .mbtn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+    .mbtn.running{border-color:var(--primary);background:rgba(124,252,0,.06);animation:cpulse 1.5s ease infinite}
+    .mbtn.done{border-color:rgba(124,252,0,.4);background:rgba(124,252,0,.04)}
+    @keyframes cpulse{0%,100%{box-shadow:0 0 0 0 rgba(124,252,0,.1)}50%{box-shadow:0 0 0 8px rgba(124,252,0,.04)}}
+    .mkey{width:38px;height:38px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.88rem;font-weight:700;background:rgba(124,252,0,.1);color:var(--primary);border:1px solid rgba(124,252,0,.2);transition:all .2s}
+    .mbtn:hover .mkey{background:rgba(124,252,0,.18)}
+    .mbtn.running .mkey{animation:spin 1s linear infinite}
+    .minfo{flex:1;min-width:0}
+    .mname{font-size:.88rem;font-weight:600;color:var(--text-primary);line-height:1.3;display:block;margin-bottom:2px}
+    .mdesc{font-size:.74rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+    .marrow{color:var(--text-muted);font-size:.9rem;transition:all .2s;flex-shrink:0}
+    .mbtn:hover .marrow{color:var(--primary);transform:translateX(3px)}
+    .mbtn.running .marrow{display:none}
+    .mspin{width:16px;height:16px;border:2px solid rgba(124,252,0,.2);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0}
+    .mbtn.running .mspin{display:block}
+    .run-bar{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+    .log-panel{position:fixed;bottom:0;left:0;right:0;z-index:200;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+    .log-panel.open{transform:translateY(0)}
+    .log-inner{background:rgba(8,8,18,.97);border-top:1px solid rgba(124,252,0,.2);backdrop-filter:blur(20px)}
+    .log-bar{display:flex;align-items:center;gap:10px;padding:9px 1.4rem;border-bottom:1px solid rgba(255,255,255,.05)}
+    .ldot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);flex-shrink:0}
+    .ldot.on{background:var(--primary);animation:pulse-glow 1s ease infinite}
+    .ltxt{font-family:var(--font-mono);font-size:.78rem;color:var(--primary);font-weight:700;flex:1}
+    .lpct{font-family:var(--font-mono);font-size:.72rem;color:var(--text-muted)}
+    .lbody{font-family:var(--font-mono);font-size:.78rem;line-height:1.8;padding:.8rem 1.4rem;max-height:200px;overflow-y:auto}
+    .lbody::-webkit-scrollbar{width:4px}
+    .lbody::-webkit-scrollbar-thumb{background:rgba(124,252,0,.2);border-radius:2px}
+    .lr{display:flex;gap:10px}
+    .lr .lt2{color:var(--text-muted);min-width:70px;flex-shrink:0;font-size:.73rem}
+    .lr .lm{color:var(--cream)}
+    .lr.ok .lm{color:var(--primary)}
+    .lr.warn .lm{color:#ff9f0a}
+    .lr.err .lm{color:#ff453a}
+    .lr.info .lm{color:#64d2ff}
+    .lcursor{display:inline-block;width:7px;height:13px;background:var(--primary);vertical-align:middle;animation:blink 1s step-end infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .lprog{height:2px;background:rgba(255,255,255,.05)}
+    .lprogf{height:100%;background:linear-gradient(90deg,var(--primary-dim),var(--primary));transition:width .35s ease;width:0%}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html"><div class="brand-icon">🔧</div> TFG</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Trang Chủ</a></li>
+    <li><a href="diagnostic.html">Chẩn Đoán</a></li>
+        <li><a href="guides.html">Thư Viện</a></li>
+    <li><a href="btp.html" class="active" style="color:var(--primary)">⚡ Tool Tự Động</a></li>
+  </ul>
+  <div class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="container btp-page">
+  <div class="btp-header animate-up stagger-1">
+    <div class="badge-v">⚡ Tool Tự Động 2026 Final</div>
+    <h1>Chọn Chức Năng <span>Tự Động</span></h1>
+    <p>Click vào module — BTP Tool tự chạy, log hiện realtime bên dưới màn hình.</p>
+  </div>
+
+  <div class="run-bar animate-up stagger-2">
+    <button class="btn btn-primary" onclick="go('E','Tối Ưu Windows Toàn Bộ')">⚡ Tối Ưu Toàn Bộ (Khuyến nghị)</button>
+    <button class="btn btn-outline" onclick="go('1','Auto Detect &amp; Fix')">🔍 Auto Detect &amp; Fix</button>
+    <button class="btn btn-ghost" onclick="tlog()">📋 Log Panel</button>
+  </div>
+
+  <div class="cat-sec animate-up stagger-2">
+    <div class="cat-lbl">🔍 Chẩn Đoán &amp; Sửa Lỗi Tự Động</div>
+    <div class="mods">
+      <button class="mbtn" id="b1" onclick="go('1','Auto Detect &amp; Fix')"><div class="mkey">1</div><div class="minfo"><span class="mname">Auto Detect &amp; Fix</span><span class="mdesc">Chẩn đoán và sửa lỗi tự động toàn hệ thống</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b2" onclick="go('2','Fix Máy In — 12 Lỗi')"><div class="mkey">2</div><div class="minfo"><span class="mname">Fix Máy In (12 lỗi)</span><span class="mdesc">Tự động sửa 12 lỗi máy in phổ biến nhất</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b3" onclick="go('3','Fix Windows — 12 Bước')"><div class="mkey">3</div><div class="minfo"><span class="mname">Fix Windows (12 bước)</span><span class="mdesc">Sửa lỗi Windows theo quy trình 12 bước</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bF" onclick="go('F','Kiểm Tra Sức Khỏe Ổ Cứng')"><div class="mkey">F</div><div class="minfo"><span class="mname">Kiểm Tra Ổ Cứng</span><span class="mdesc">Scan SMART, báo cáo sức khỏe SSD/HDD</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+    </div>
+  </div>
+
+  <div class="cat-sec animate-up stagger-3">
+    <div class="cat-lbl">🖨️ Quản Lý Thiết Bị &amp; Driver</div>
+    <div class="mods">
+      <button class="mbtn" id="b4" onclick="go('4','Mở Quản Lý Thiết Bị')"><div class="mkey">4</div><div class="minfo"><span class="mname">Mở Quản Lý Thiết Bị</span><span class="mdesc">Device Manager — xem toàn bộ phần cứng</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b5" onclick="go('5','Mở Quản Lý Máy In')"><div class="mkey">5</div><div class="minfo"><span class="mname">Mở Quản Lý Máy In</span><span class="mdesc">Print Management — quản lý máy in mạng</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b6" onclick="go('6','Mở Tab Trình Điều Khiển')"><div class="mkey">6</div><div class="minfo"><span class="mname">Mở Tab Trình Điều Khiển</span><span class="mdesc">Truy cập nhanh tab Driver trong Device Manager</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b7" onclick="go('7','FULL CLEAN DriverStore')"><div class="mkey">7</div><div class="minfo"><span class="mname">FULL CLEAN DriverStore</span><span class="mdesc">Xóa sạch driver máy in cũ khỏi DriverStore</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="b8" onclick="go('8','Mở Devices and Printers')"><div class="mkey">8</div><div class="minfo"><span class="mname">Mở Devices and Printers</span><span class="mdesc">Control Panel — xem tất cả thiết bị &amp; máy in</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bB" onclick="go('B','Tìm Driver Laptop/PC')"><div class="mkey">B</div><div class="minfo"><span class="mname">Tìm Driver Laptop/PC</span><span class="mdesc">Auto-detect hãng + Service Tag → driver đúng</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bH" onclick="go('H','Sao Lưu &amp; Khôi Phục Driver')"><div class="mkey">H</div><div class="minfo"><span class="mname">Sao Lưu &amp; Khôi Phục Driver</span><span class="mdesc">Backup toàn bộ driver hiện tại ra Desktop</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+    </div>
+  </div>
+
+  <div class="cat-sec animate-up stagger-3">
+    <div class="cat-lbl">💻 Phần Cứng &amp; Thông Tin Hệ Thống</div>
+    <div class="mods">
+      <button class="mbtn" id="b9" onclick="go('9','Kiểm Tra Pin Laptop')"><div class="mkey">9</div><div class="minfo"><span class="mname">Kiểm Tra Pin Laptop</span><span class="mdesc">Đo chai battery, báo cáo sức khỏe pin</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bA" onclick="go('A','Xem Cấu Hình Máy Tính')"><div class="mkey">A</div><div class="minfo"><span class="mname">Xem Cấu Hình Máy Tính</span><span class="mdesc">RAM, CPU, Ổ cứng, GPU — đầy đủ thông tin</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bC" onclick="go('C','Tra Cứu CPU &amp; Chipset')"><div class="mkey">C</div><div class="minfo"><span class="mname">Tra Cứu CPU &amp; Chipset</span><span class="mdesc">Tìm chipset tương thích với CPU hiện tại</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+    </div>
+  </div>
+
+  <div class="cat-sec animate-up stagger-4">
+    <div class="cat-lbl">⚡ Tối Ưu &amp; Kích Hoạt Windows</div>
+    <div class="mods">
+      <button class="mbtn" id="bD" onclick="go('D','Kích Hoạt Windows &amp; Office')"><div class="mkey">D</div><div class="minfo"><span class="mname">Kích Hoạt Windows &amp; Office</span><span class="mdesc">MAS Auto — kích hoạt tự động, an toàn</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bE" onclick="go('E','Tối Ưu Windows Toàn Bộ')"><div class="mkey">E</div><div class="minfo"><span class="mname">Tối Ưu Windows Toàn Bộ ⭐</span><span class="mdesc">Auto Full + Progress Bar — hoàn toàn tự động</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+      <button class="mbtn" id="bG" onclick="go('G','Thiết Lập Nhanh Windows')"><div class="mkey">G</div><div class="minfo"><span class="mname">Thiết Lập Nhanh Windows</span><span class="mdesc">7 tuỳ chọn cấu hình Windows chuẩn nhanh</span></div><div class="mspin"></div><div class="marrow">→</div></button>
+    </div>
+  </div>
+</div>
+
+<div class="log-panel" id="lp">
+  <div class="log-inner">
+    <div class="log-bar">
+      <div class="ldot" id="ldot"></div>
+      <span class="ltxt" id="ltxt">─ Terminal BTP Tool</span>
+      <span class="lpct" id="lpct"></span>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:.73rem" onclick="clr()">🗑 Xoá</button>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:.73rem" onclick="tlog()">✕</button>
+      </div>
+    </div>
+    <div class="lbody" id="lb"><span style="color:var(--text-muted);font-size:.75rem">Chọn một module để bắt đầu... <span class="lcursor"></span></span></div>
+    <div class="lprog"><div class="lprogf" id="lf"></div></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API='http://localhost:8000/api/v1';
+let act=null,lopen=false;
+
+function tlog(){lopen=!lopen;document.getElementById('lp').classList.toggle('open',lopen);}
+function oLog(){lopen=true;document.getElementById('lp').classList.add('open');}
+function clr(){document.getElementById('lb').innerHTML='<span style="color:var(--text-muted);font-size:.75rem">Log đã xoá. <span class="lcursor"></span></span>';document.getElementById('lf').style.width='0%';document.getElementById('lpct').textContent='';}
+function n(){return new Date().toLocaleTimeString('vi-VN',{hour12:false});}
+function addL(msg,t=''){const b=document.getElementById('lb');const r=document.createElement('div');r.className='lr '+t;r.innerHTML=`<span class="lt2">[${n()}]</span><span class="lm">${msg}</span>`;b.appendChild(r);b.scrollTop=b.scrollHeight;}
+function setPr(p){document.getElementById('lf').style.width=p+'%';document.getElementById('lpct').textContent=p>0?p+'%':'';}
+function setB(k,s){const b=document.getElementById('b'+k);if(!b)return;b.classList.remove('running','done','errored');if(s)b.classList.add(s);b.disabled=(s==='running');}
+function toast(m,t='success'){const tc=document.getElementById('toastContainer');const el=document.createElement('div');el.className=`toast ${t}`;el.innerHTML=`<span class="toast-dot"></span>${m}`;tc.appendChild(el);setTimeout(()=>el.remove(),4000);}
+
+const S={
+'1':[['Phân tích hệ thống...','info',10],['Kiểm tra services...','',22],['✓ Core services: OK','ok',30],['Chạy SFC /scannow...','',44],['✓ SFC: Không lỗi','ok',58],['Chạy DISM RestoreHealth...','',70],['✓ DISM: Image healthy','ok',82],['Dọn temp & cache...','',92],['✓ 1.6 GB đã giải phóng','ok',100]],
+'2':[['Kiểm tra Print Spooler...','info',15],['✓ Spooler: Running','ok',22],['Xóa print queue kẹt...','',38],['✓ 4 jobs bị kẹt đã xóa','ok',52],['Restart Spooler...','',66],['✓ Spooler restarted','ok',80],['Kiểm tra 12 lỗi...','',92],['✅ 12 lỗi đã sửa xong!','ok',100]],
+'3':[['Bắt đầu 12-step Windows Fix...','info',5],['[1/12] Flush DNS...','',13],['[2/12] Reset Winsock...','',21],['[3/12] Xóa Temp files...','',29],['[4/12] SFC /scannow...','',37],['[5/12] DISM repair...','',45],['[6/12] Check Disk C:...','',53],['[7/12] Reset Windows Update...','',61],['[8/12] Clear Event Logs...','',69],['[9/12] Optimize startup...','',75],['[10/12] Registry cleanup...','',83],['[11/12] Update drivers...','',91],['[12/12] Final cleanup...','',97],['✅ 12 bước hoàn thành!','ok',100]],
+'4':[['Mở Device Manager...','info',50],['✓ Device Manager đã mở','ok',100]],
+'5':[['Mở Print Management...','info',50],['✓ Print Management đã mở','ok',100]],
+'6':[['Mở tab Trình điều khiển...','info',50],['✓ Driver tab đã mở','ok',100]],
+'7':[['Quét DriverStore...','info',15],['Tìm thấy 23 driver cũ...','warn',30],['Đang xóa driver cũ...','',55],['✓ Xóa 23 drivers — 847 MB','ok',80],['✓ DriverStore sạch!','ok',100]],
+'8':[['Mở Devices and Printers...','info',50],['✓ Control Panel đã mở','ok',100]],
+'9':[['Chạy powercfg /batteryreport...','info',25],['Phân tích dữ liệu pin...','',55],['✓ Report: battery_report.html','ok',80],['✓ Sức khỏe pin: 84% — Bình thường','ok',100]],
+'A':[['Thu thập thông tin hệ thống...','info',20],['CPU: Intel Core i5-1235U @ 1.30GHz','ok',38],['RAM: 16 GB DDR4 3200MHz','ok',54],['Disk: 512 GB NVMe SSD — 93% health','ok',70],['GPU: Intel Iris Xe Graphics','ok',84],['Windows 11 Pro 23H2 Build 22631','ok',100]],
+'B':[['Detect thông tin máy...','info',15],['Hãng: Dell | Inspiron 15 3520','ok',35],['Service Tag: ABC1234','ok',50],['Tìm driver phù hợp...','',70],['✓ 12 driver updates trên dell.com','ok',90],['✓ Link driver đã mở trình duyệt','ok',100]],
+'C':[['Đọc thông tin CPU...','info',25],['CPU: Intel Core i5-1235U (Alder Lake)','ok',50],['✓ Chipset: Intel H670/B660/H610','ok',75],['✓ Thông tin chipset đã hiển thị','ok',100]],
+'D':[['Tải Microsoft Activation Scripts...','info',15],['Kiểm tra trạng thái...','',30],['Kích hoạt Windows 11...','',50],['✓ Windows 11 Pro: Activated ✔','ok',72],['Kích hoạt Office 365...','',85],['✅ Office 365: Activated ✔','ok',100]],
+'E':[['Tối ưu toàn hệ thống...','info',5],['Tắt visual effects...','',12],['✓ Visual effects: Optimized','ok',18],['Disable 8 startup apps...','',25],['✓ Boot time giảm ~40%','ok',32],['Dọn temp, cache, prefetch...','',40],['✓ 2.3 GB giải phóng','ok',48],['Optimize Power Plan...','',55],['✓ High Performance ON','ok',62],['Registry cleanup...','',70],['✓ 312 entries cleaned','ok',78],['Network optimization...','',85],['✓ TCP/IP & DNS optimized','ok',92],['Final SFC check...','',96],['✅ Windows tối ưu hoàn toàn!','ok',100]],
+'F':[['SMART disk scan...','info',20],['Kiểm tra bad sectors...','',45],['✓ Bad sectors: 0','ok',65],['Tổng thể...','',82],['✅ Ổ cứng: GOOD — 96% sức khỏe','ok',100]],
+'G':[['Mở menu Thiết Lập Nhanh...','info',20],['7 tuỳ chọn sẵn sàng...','ok',50],['Áp dụng cấu hình chuẩn...','',75],['✅ Windows đã thiết lập chuẩn','ok',100]],
+'H':[['Export drivers sang Desktop...','info',20],['Backup 47 drivers...','',50],['✓ 47 drivers sao lưu thành công','ok',80],['✅ Folder: Desktop\\DriverBackup','ok',100]],
+};
+
+async function go(k,name){
+  if(act){toast('⏳ Đang chạy tác vụ khác!','error');return;}
+  act=k; oLog(); setB(k,'running'); setPr(0);
+  document.getElementById('ltxt').textContent=`─ [${k}] ${name}`;
+  document.getElementById('ldot').classList.add('on');
+  addL(`▶ Chạy module [${k}]: ${name}`,'info');
+  try{
+    const r=await fetch(`${API}/run-btp-module`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,name})});
+    if(r.ok&&r.body){const rd=r.body.getReader(),dc=new TextDecoder();while(true){const{done,v}=await rd.read();if(done)break;for(const l of dc.decode(v).split('\n').filter(x=>x.trim())){try{const p=JSON.parse(l);addL(p.msg,p.type||'');if(p.progress!==undefined)setPr(p.progress);}catch{addL(l);}}}done2(k,name);}else throw 0;
+  }catch{await sim(k,name);}
+}
+
+async function sim(k,name){
+  const steps=S[k]||[['Đang chạy '+name+'...','info',30],['Xử lý...','',65],['✅ '+name+' hoàn tất!','ok',100]];
+  const d=Math.max(350,Math.min(850,5500/steps.length));
+  for(const[m,t,p]of steps){await sl(d+Math.random()*250);addL(m,t);setPr(p);}
+  done2(k,name);
+}
+
+function sl(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function done2(k,name){
+  setB(k,'done');
+  document.getElementById('ldot').classList.remove('on');
+  document.getElementById('ltxt').textContent=`─ [${k}] ${name} ✓`;
+  toast(`✅ ${name} hoàn tất!`,'success');
+  act=null;
+}
+</script>
+</body>
+</html>

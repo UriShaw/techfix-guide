@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TechFix Guide – Trạm Cứu Hộ Công Nghệ. Chẩn đoán và sửa lỗi Laptop, Điện thoại nhanh chóng." />
+  <meta name="theme-color" content="#1A1A2E" />
+  <title>TechFix Guide – Trạm Cứu Hộ Công Nghệ</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Navbar ─────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon">🔧</div>
+      TFG
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="active">Trang Chủ</a></li>
+      <li><a href="diagnostic.html">Chẩn Đoán</a></li>
+      <li><a href="guides.html">Thư Viện</a></li>
+      <li><a href="btp.html" style="color:var(--primary);">⚡ Tool Tự Động</a></li>
+    </ul>
+    <div class="nav-hamburger" id="hamburger" onclick="toggleNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- ── Hero ───────────────────────────────────────────────── -->
+  <section class="hero container">
+    <div class="hero-eyebrow animate-up stagger-1">
+      ⚡ Trạm Cứu Hộ Công Nghệ
+    </div>
+    <h1 class="animate-up stagger-2">
+      <span>TechFix Guide</span><br />
+      Sửa Lỗi Thông Minh
+    </h1>
+    <p class="hero-sub animate-up stagger-3">
+      Chẩn đoán lỗi Laptop & Điện thoại tức thì. Hướng dẫn từng bước, script tự động, thư viện kiến thức — tất cả trong một nơi.
+    </p>
+    <div class="hero-actions animate-up stagger-4">
+      <a href="diagnostic.html" class="btn btn-primary">
+        🔍 Chẩn Đoán Ngay
+      </a>
+      <a href="guides.html" class="btn btn-outline">
+        📚 Xem Thư Viện
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Stats Bar ──────────────────────────────────────────── -->
+  <div class="container">
+    <div class="stats-bar animate-up stagger-4">
+      <div class="stat-item">
+        <span class="stat-num" id="stat-errors">—</span>
+        <span class="stat-label">Lỗi Đã Lập Danh Mục</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="stat-guides">—</span>
+        <span class="stat-label">Bài Hướng Dẫn</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="stat-scripts">—</span>
+        <span class="stat-label">Script Tự Động</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">2</span>
+        <span class="stat-label">Loại Thiết Bị</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modules Grid ────────────────────────────────────────── -->
+  <section class="container" style="padding-top: 1rem;">
+    <div class="section-header">
+      <span class="overline">Công Cụ</span>
+      <h2>Chọn Module Cần Dùng</h2>
+      <p>Ba công cụ mạnh mẽ giúp bạn giải quyết mọi vấn đề kỹ thuật nhanh nhất.</p>
+    </div>
+    <div class="modules-grid">
+
+      <a href="diagnostic.html" class="module-card glass-card animate-up stagger-2">
+        <div class="module-icon green">🖥️</div>
+        <h3>Diagnostic Tool</h3>
+        <p>Lọc lỗi theo thiết bị, hệ điều hành và loại lỗi. Nhận giải pháp sửa lỗi chi tiết ngay lập tức. Hỗ trợ quét ảnh lỗi bằng OCR.</p>
+        <div class="module-arrow">→</div>
+      </a>
+
+      <a href="btp.html" class="module-card glass-card animate-up stagger-3">
+        <div class="module-icon blue">⚡</div>
+        <h3>Tool Tự Động</h3>
+        <p>BTP Tool 2026 với 18 module tự động: dọn rác, fix Windows, kiểm tra phần cứng, kích hoạt bản quyền — một click xong hết.</p>
+        <div class="module-arrow">→</div>
+      </a>
+
+      <a href="guides.html" class="module-card glass-card animate-up stagger-4">
+        <div class="module-icon orange">📱</div>
+        <h3>Mobile Fix Library</h3>
+        <p>Hỏi AI bất kỳ lỗi gì — Laptop, điện thoại, Windows, mạng. Giải pháp chi tiết từ Claude AI, không giới hạn chủ đề.</p>
+        <div class="module-arrow">→</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── Feature Highlights ─────────────────────────────────── -->
+  <section class="container" style="padding-bottom: 5rem;">
+    <div class="section-header">
+      <span class="overline">Tính Năng Nổi Bật</span>
+      <h2>Tại Sao Chọn TechFix Guide?</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="glass-card animate-up stagger-1" style="padding: 1.5rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.8rem;">🤖</div>
+        <h4 style="margin-bottom: 0.4rem; font-size: 0.95rem;">OCR Thông Minh</h4>
+        <p style="font-size: 0.82rem;">EasyOCR đọc ảnh lỗi, tự động trích xuất mã lỗi và tìm giải pháp.</p>
+      </div>
+      <div class="glass-card animate-up stagger-2" style="padding: 1.5rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.8rem;">⚡</div>
+        <h4 style="margin-bottom: 0.4rem; font-size: 0.95rem;">FastAPI Async</h4>
+        <p style="font-size: 0.82rem;">Backend xử lý bất đồng bộ, phản hồi cực nhanh ngay cả khi tải cao.</p>
+      </div>
+      <div class="glass-card animate-up stagger-3" style="padding: 1.5rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.8rem;">📴</div>
+        <h4 style="margin-bottom: 0.4rem; font-size: 0.95rem;">Offline Mode</h4>
+        <p style="font-size: 0.82rem;">PWA với Service Worker giúp đọc hướng dẫn dù không có mạng.</p>
+      </div>
+      <div class="glass-card animate-up stagger-4" style="padding: 1.5rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.8rem;">🔗</div>
+        <h4 style="margin-bottom: 0.4rem; font-size: 0.95rem;">Error → Script Mapping</h4>
+        <p style="font-size: 0.82rem;">Mỗi lỗi được liên kết với script sửa tự động phù hợp nhất.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────────────────── -->
+  <footer class="footer">
+    <span class="footer-logo">TechFix Guide</span> — Trạm Cứu Hộ Công Nghệ &copy; 2024
+  </footer>
+
+  <!-- ── PWA Install Banner ──────────────────────────────────── -->
+  <div class="pwa-banner glass-card" id="pwaBanner">
+    <span style="font-size: 1.5rem;">📲</span>
+    <div style="flex: 1; font-size: 0.85rem;">
+      <strong style="display: block; color: var(--primary);">Cài đặt TechFix Guide</strong>
+      Sử dụng offline, truy cập nhanh hơn!
+    </div>
+    <button class="btn btn-primary" id="pwaInstallBtn" style="padding: 7px 14px; font-size: 0.8rem;">Cài</button>
+    <button onclick="document.getElementById('pwaBanner').classList.remove('show')" class="btn btn-ghost" style="padding: 7px 10px; font-size: 0.8rem;">✕</button>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const API = 'http://localhost:8000/api/v1';
+
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    // Load stats
+    async function loadStats() {
+      try {
+        const [errors, guides, scripts] = await Promise.all([
+          fetch(`${API}/diagnostic`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r=>r.json()),
+          fetch(`${API}/guides`).then(r=>r.json()),
+          fetch(`${API}/scripts`).then(r=>r.json()),
+        ]);
+        document.getElementById('stat-errors').textContent  = errors.count  ?? '17';
+        document.getElementById('stat-guides').textContent  = guides.length ?? '6';
+        document.getElementById('stat-scripts').textContent = scripts.length ?? '8';
+      } catch {
+        document.getElementById('stat-errors').textContent  = '17';
+        document.getElementById('stat-guides').textContent  = '6';
+        document.getElementById('stat-scripts').textContent = '8';
+      }
+    }
+
+    // Animate counters
+    function animateCount(el, target) {
+      let start = 0;
+      const step = Math.ceil(target / 30);
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= target) { el.textContent = target; clearInterval(timer); }
+        else el.textContent = start;
+      }, 30);
+    }
+
+    // PWA
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('pwaBanner').classList.add('show');
+    });
+    document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') document.getElementById('pwaBanner').classList.remove('show');
+      deferredPrompt = null;
+    });
+
+    // Register SW
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.warn('SW failed:', err));
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

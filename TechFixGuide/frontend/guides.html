@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0D0F1A"/>
+<title>Thư Viện Lỗi – TechFix Guide</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="assets/icons/icon-192.png"/>
+<link rel="stylesheet" href="style.css"/>
+<style>
+:root{
+  --surface:#12141F;--surface2:#1A1D2E;--border:rgba(255,255,255,.07);
+  --primary:#7CFC00;--text1:#FFFDD0;--text2:#9CA3AF;--text3:#6B7280;
+  --radius:8px;--radius-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+.page{padding:1.5rem 0 8rem}
+
+.lib-header{text-align:center;padding:1.4rem 0 .8rem}
+.lib-header h2{font-family:var(--font-display,sans-serif);font-size:clamp(1.6rem,3vw,2.4rem);color:var(--text1)}
+.lib-header h2 span{color:var(--primary)}
+.lib-header p{color:var(--text2);font-size:.85rem;margin:.3rem auto 0;max-width:560px}
+.dbadge{display:inline-flex;align-items:center;gap:5px;margin-top:.6rem;padding:4px 14px;border-radius:999px;background:rgba(124,252,0,.08);border:1px solid rgba(124,252,0,.2);color:var(--primary);font-size:.72rem;font-weight:700;letter-spacing:.5px}
+
+.search-wrap{max-width:700px;margin:.9rem auto 0;position:relative}
+.search-inp{width:100%;padding:13px 145px 13px 46px;background:var(--surface2);border:1px solid rgba(124,252,0,.22);border-radius:var(--radius-lg);color:var(--text1);font-size:.92rem;font-family:inherit;outline:none;transition:border .18s,box-shadow .18s}
+.search-inp::placeholder{color:var(--text3)}
+.search-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,252,0,.07)}
+.search-ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-btns{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:4px;align-items:center}
+.btn-ai{padding:5px 12px;border-radius:var(--radius);background:var(--primary);color:#0D0F1A;font-size:.76rem;font-weight:800;border:none;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-ai:hover{opacity:.85}
+.btn-key{padding:5px 9px;border-radius:var(--radius);background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);font-size:.8rem;cursor:pointer;transition:all .15s}
+.btn-key:hover{color:var(--text1);border-color:rgba(255,255,255,.15)}
+
+.quick-tags{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;margin-top:.7rem}
+.qtag{padding:4px 11px;border-radius:999px;font-size:.72rem;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:var(--surface2);transition:all .15s;font-family:inherit}
+.qtag:hover{border-color:rgba(124,252,0,.3);color:var(--primary);background:rgba(124,252,0,.05)}
+
+.ptabs{display:flex;gap:.25rem;flex-wrap:wrap;margin:1.2rem 0 .8rem;padding-bottom:.8rem;border-bottom:1px solid var(--border)}
+.ptab{padding:7px 14px;border-radius:var(--radius);font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;color:var(--text2);display:flex;align-items:center;gap:5px;background:none;font-family:inherit}
+.ptab:hover{color:var(--text1);background:var(--surface2)}
+.ptab.active{border-color:rgba(124,252,0,.28);color:var(--primary);background:rgba(124,252,0,.06)}
+.ptab .cnt{font-size:.62rem;font-family:monospace;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:999px}
+
+.lib-layout{display:grid;grid-template-columns:185px 1fr;gap:1rem}
+
+.lib-sidebar{position:sticky;top:76px;max-height:calc(100vh - 100px);overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding-right:2px}
+.lib-sidebar::-webkit-scrollbar{width:2px}
+.lib-sidebar::-webkit-scrollbar-thumb{background:rgba(124,252,0,.15)}
+.cat-item{padding:6px 9px;border-radius:var(--radius);cursor:pointer;font-size:.77rem;color:var(--text2);border:1px solid transparent;display:flex;align-items:center;gap:6px;transition:all .12s}
+.cat-item:hover{background:var(--surface2);color:var(--text1)}
+.cat-item.active{background:rgba(124,252,0,.06);border-color:rgba(124,252,0,.15);color:var(--primary);font-weight:600}
+.cat-item .ci-em{width:18px;text-align:center;flex-shrink:0;font-size:.85rem}
+.cat-item .ci-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.74rem}
+.cat-item .ci-n{margin-left:auto;font-size:.6rem;font-family:monospace;color:var(--text3);background:rgba(255,255,255,.04);padding:1px 5px;border-radius:999px;flex-shrink:0}
+
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.list-count{font-size:.72rem;color:var(--text3);font-family:monospace}
+.list-sort{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.7rem;padding:3px 7px;outline:none;cursor:pointer;font-family:inherit}
+.err-list{display:flex;flex-direction:column;gap:.3rem}
+.err-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.65rem .9rem;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:8px}
+.err-item:hover{border-color:rgba(124,252,0,.2);background:rgba(124,252,0,.025);transform:translateX(2px)}
+.err-item.active{border-color:var(--primary);background:rgba(124,252,0,.04)}
+.err-ico{font-size:.9rem;flex-shrink:0;width:20px;text-align:center}
+.err-body{flex:1;min-width:0}
+.err-name{font-size:.82rem;font-weight:600;color:var(--text1);display:block}
+.err-desc{font-size:.7rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.err-arr{color:var(--text3);font-size:.8rem;transition:all .14s;flex-shrink:0}
+.err-item:hover .err-arr,.err-item.active .err-arr{color:var(--primary);transform:translateX(2px)}
+
+.sol{display:none;margin-bottom:.9rem}
+.sol.show{display:block;animation:slideDown .22s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.sol-card{background:var(--surface2);border:1px solid rgba(124,252,0,.15);border-radius:var(--radius-lg);overflow:hidden}
+.sol-head{display:flex;align-items:center;gap:9px;padding:10px 1.1rem;background:rgba(124,252,0,.035);border-bottom:1px solid rgba(124,252,0,.08)}
+.sol-title{flex:1;font-size:.86rem;font-weight:700;color:var(--text1)}
+.sol-tag{font-size:.58rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid;flex-shrink:0}
+.sol-tag.offline{background:rgba(124,252,0,.08);border-color:rgba(124,252,0,.2);color:var(--primary)}
+.sol-tag.ai-tag{background:rgba(100,210,255,.08);border-color:rgba(100,210,255,.2);color:#64D2FF}
+.sol-tag.loading{background:rgba(255,209,102,.06);border-color:rgba(255,209,102,.2);color:#FFD166}
+.sol-tag.err-tag{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.2);color:#F97316}
+.sol-actions{display:flex;gap:.25rem}
+.sol-btn{padding:3px 9px;border-radius:6px;font-size:.68rem;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);font-family:inherit;transition:all .13s}
+.sol-btn:hover{color:var(--text1);background:rgba(255,255,255,.08)}
+.sol-content{padding:1rem 1.1rem;font-size:.84rem;line-height:1.82;color:var(--text2);max-height:500px;overflow-y:auto}
+.sol-content::-webkit-scrollbar{width:2px}
+.sol-content::-webkit-scrollbar-thumb{background:rgba(124,252,0,.15)}
+.sol-content h2{color:var(--primary);font-size:.9rem;margin:1rem 0 .25rem}
+.sol-content h1{color:var(--primary);font-size:.96rem;margin:1rem 0 .25rem}
+.sol-content p{margin-bottom:.4rem}
+.sol-content ul,.sol-content ol{padding-left:1.3rem;margin-bottom:.5rem}
+.sol-content li{margin-bottom:3px}
+.sol-content code{font-family:monospace;font-size:.78em;background:rgba(124,252,0,.1);color:var(--primary);padding:1px 5px;border-radius:3px}
+.sol-content pre{background:rgba(0,0,0,.4);border-radius:7px;padding:.7rem;overflow-x:auto;margin:.4rem 0;border:1px solid rgba(124,252,0,.07)}
+.sol-content pre code{background:none;padding:0;color:#C8E6C9;font-size:.75rem}
+.sol-content strong{color:var(--text1)}
+.sol-foot{display:flex;align-items:center;justify-content:space-between;padding:7px 1.1rem;border-top:1px solid var(--border)}
+.sol-meta{font-size:.67rem;color:var(--text3)}
+.sol-ai-btn{padding:5px 14px;border-radius:var(--radius);font-size:.74rem;cursor:pointer;background:rgba(100,210,255,.07);border:1px solid rgba(100,210,255,.2);color:#64D2FF;font-family:inherit;font-weight:600;transition:all .15s}
+.sol-ai-btn:hover{background:rgba(100,210,255,.12)}
+
+.thinking{display:flex;align-items:center;gap:10px;padding:.8rem;color:var(--text2);font-size:.83rem}
+.dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--primary);animation:dw 1.2s ease infinite;margin:0 2px}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dw{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty .ei{font-size:2.5rem;margin-bottom:.7rem}
+
+/* KEY MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:#1A1D2E;border:1px solid rgba(124,252,0,.2);border-radius:14px;padding:1.5rem;width:min(480px,92vw);position:relative}
+.modal-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem}
+.modal-inp{width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(124,252,0,.25);border-radius:8px;color:var(--text1);font-size:.85rem;outline:none;font-family:monospace}
+.modal-inp:focus{border-color:var(--primary)}
+
+@media(max-width:768px){
+  .lib-layout{grid-template-columns:1fr}
+  .lib-sidebar{position:static;max-height:none;flex-direction:row;flex-wrap:wrap;gap:3px}
+  .cat-item{padding:3px 8px;font-size:.7rem}
+  .ptabs{gap:.2rem}
+  .ptab{padding:5px 10px;font-size:.75rem}
+  .search-inp{padding-right:115px}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html"><div class="brand-icon">🔧</div> TFG</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Trang Chủ</a></li>
+    <li><a href="diagnostic.html">Chẩn Đoán</a></li>
+    <li><a href="guides.html" class="active">Thư Viện</a></li>
+    <li><a href="btp.html">⚡ Tool Tự Động</a></li>
+  </ul>
+  <div class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="container page">
+
+  <div class="lib-header">
+    <h2>Thư Viện <span>Lỗi &amp; Giải Pháp</span></h2>
+    <p>Kho dữ liệu offline 150 lỗi thường gặp + Gemini AI hỗ trợ mọi câu hỏi kỹ thuật</p>
+    <span class="dbadge">📦 150 Lỗi · Offline · AI</span>
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input class="search-inp" id="sInp" placeholder="Tìm lỗi hoặc hỏi AI... vd: bootloop, BSOD, camera mờ..."
+        oninput="onSearch()" onkeydown="onKey(event)"/>
+      <div class="search-btns">
+        <button class="btn-ai" onclick="askAI()">✦ Hỏi AI</button>
+        <button class="btn-key" onclick="openKeyModal()" title="Đổi API Key">🔑</button>
+      </div>
+    </div>
+    <div class="quick-tags">
+      <button class="qtag" onclick="qSearch('bootloop android')">Bootloop</button>
+      <button class="qtag" onclick="qSearch('BSOD DPC WATCHDOG')">BSOD Windows</button>
+      <button class="qtag" onclick="qSearch('iPhone treo táo')">iPhone treo táo</button>
+      <button class="qtag" onclick="qSearch('máy in offline')">Máy in offline</button>
+      <button class="qtag" onclick="qSearch('WiFi no internet')">WiFi lỗi</button>
+      <button class="qtag" onclick="qSearch('pin hao nhanh')">Pin hao</button>
+      <button class="qtag" onclick="qSearch('ransomware')">Ransomware</button>
+      <button class="qtag" onclick="qSearch('Google Play')">No Google</button>
+    </div>
+  </div>
+
+  <div class="sol" id="solPanel">
+    <div class="sol-card">
+      <div class="sol-head">
+        <span id="sIcon">🔧</span>
+        <span class="sol-title" id="sTitle"></span>
+        <span class="sol-tag offline" id="sTag">Offline DB</span>
+        <div class="sol-actions">
+          <button class="sol-btn" onclick="copySol()">📋 Copy</button>
+          <button class="sol-btn" onclick="closePanel()">✕</button>
+        </div>
+      </div>
+      <div class="sol-content" id="sContent"></div>
+      <div class="sol-foot">
+        <span class="sol-meta" id="sMeta"></span>
+        <button class="sol-ai-btn" id="sAiBtn" style="display:none" onclick="askAIFor()">✦ Hỏi Gemini AI thêm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ptabs" id="ptabs">
+    <button class="ptab active" data-p="android" onclick="switchPlatform(this)">🤖 Android<span class="cnt" id="cnt-android"></span></button>
+    <button class="ptab" data-p="iphone" onclick="switchPlatform(this)">🍎 iPhone<span class="cnt" id="cnt-iphone"></span></button>
+    <button class="ptab" data-p="windows" onclick="switchPlatform(this)">🪟 Windows<span class="cnt" id="cnt-windows"></span></button>
+    <button class="ptab" data-p="macos" onclick="switchPlatform(this)">🍏 macOS<span class="cnt" id="cnt-macos"></span></button>
+    <button class="ptab" data-p="printer" onclick="switchPlatform(this)">🖨️ Máy In<span class="cnt" id="cnt-printer"></span></button>
+    <button class="ptab" data-p="network" onclick="switchPlatform(this)">📡 Mạng<span class="cnt" id="cnt-network"></span></button>
+    <button class="ptab" data-p="hardware" onclick="switchPlatform(this)">🔧 Phần Cứng<span class="cnt" id="cnt-hardware"></span></button>
+    <button class="ptab" data-p="all" onclick="switchPlatform(this)">🌐 Tất Cả<span class="cnt" id="cnt-all"></span></button>
+  </div>
+
+  <div class="lib-layout">
+    <aside class="lib-sidebar" id="sidebar"></aside>
+    <main>
+      <div class="list-header">
+        <span class="list-count" id="listCount">0 lỗi</span>
+        <select class="list-sort" id="sortSel" onchange="renderList()">
+          <option value="default">Mặc định</option>
+          <option value="az">A → Z</option>
+        </select>
+      </div>
+      <div class="err-list" id="errList"></div>
+    </main>
+  </div>
+
+</div>
+
+<!-- KEY MODAL -->
+<div class="modal-bg" id="keyModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeKeyModal()">✕</button>
+    <h3 style="color:var(--text1);margin-bottom:.4rem;font-size:1rem">🔑 Đổi Gemini API Key</h3>
+    <p style="color:var(--text3);font-size:.78rem;margin-bottom:1rem">Key hết quota. Lấy key mới miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#64D2FF">Google AI Studio</a></p>
+    <input id="keyInp" class="modal-inp" placeholder="Dán API Key mới vào đây..."
+      onkeydown="if(event.key==='Enter')saveKey()"/>
+    <div style="display:flex;gap:.5rem;margin-top:.8rem">
+      <button onclick="saveKey()" style="flex:1;padding:9px;background:var(--primary);border:none;border-radius:8px;color:#0D0F1A;font-weight:800;font-size:.85rem;cursor:pointer">✓ Lưu Key</button>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" style="padding:9px 14px;background:rgba(100,210,255,.08);border:1px solid rgba(100,210,255,.2);border-radius:8px;color:#64D2FF;font-size:.8rem;text-decoration:none;display:flex;align-items:center">Lấy Key ↗</a>
+    </div>
+    <p style="color:var(--text3);font-size:.68rem;margin-top:.6rem;opacity:.6">Key lưu cục bộ trong trình duyệt.</p>
+  </div>
+</div>
+
+<div class="toast-container" id="tc"></div>
+
+<script>
+const DB={
+  "android":{
+    "\ud83d\udd04 Boot & H\u1ec7 Th\u1ed1ng":[
+      ['Bootloop treo logo','Kẹt logo không vào hệ thống','Nguyên nhân: ROM lỗi, OTA thất bại.\n\nCách sửa:\n1. Force restart: Power + Vol Down giữ 10s\n2. Recovery → Wipe Cache Partition → Reboot\n3. Factory Reset nếu vẫn treo (mất data)\n4. Flash ROM gốc qua Fastboot hoặc SP Flash Tool\n5. Qualcomm: EDL Mode 9008\n\nLưu ý: Wipe Cache không mất data. Factory Reset mất toàn bộ.'],
+      ['Tự khởi động lại liên tục','Restart vô hạn không dừng','Nguyên nhân: Kernel crash, nhiệt cao, app hệ thống lỗi.\n\nCách sửa:\n1. Boot Safe Mode (giữ Vol Down khi khởi động)\n2. Gỡ app vừa cài\n3. Clear Dalvik cache từ Recovery\n4. Kiểm tra nhiệt độ với CPU-Z\n5. Flash lại firmware'],
+      ['Safe Mode không tắt được','Máy luôn boot vào Safe Mode','Nguyên nhân: Nút Vol Down kẹt vật lý.\n\nCách sửa:\n1. Nhấn nút Vol Down vài lần xem có kẹt không\n2. Tắt hoàn toàn rồi bật lại không giữ nút\n3. Pull battery nếu pin rời\n4. Wipe cache partition\n5. ADB: adb shell settings put global safemode 0'],
+      ['ADB unauthorized offline','PC không kết nối ADB','Nguyên nhân: Chưa chấp nhận RSA key, driver lỗi.\n\nCách sửa:\n1. Tắt USB Debugging rồi bật lại\n2. Dev Options → Revoke USB debugging authorizations\n3. Kết nối lại rồi chấp nhận popup RSA\n4. Cài Google USB Driver mới nhất\n5. adb kill-server rồi adb start-server\n\nLưu ý: Dùng cáp data, không phải cáp sạc.'],
+      ['Fastboot không nhận máy','PC không nhận chế độ Fastboot','Nguyên nhân: Driver chưa cài, Secure Boot chặn.\n\nCách sửa:\n1. Cài Android SDK Platform Tools mới\n2. Google USB Driver từ SDK Manager\n3. Device Manager → Update driver\n4. Chạy fastboot devices quyền Admin\n5. Tắt Secure Boot BIOS'],
+      ['EDL Mode 9008 không kết nối','Qualcomm EDL không nhận PC','Nguyên nhân: Driver HS-USB chưa cài.\n\nCách sửa:\n1. Cài Qualcomm HS-USB QDLoader 9008 driver\n2. Tắt Driver Signature Enforcement Windows\n3. Cáp USB 2.0 ngắn trực tiếp mainboard\n4. Dùng QFIL hoặc MiFlash\n\nLưu ý: Cần file firmware EDL đúng model.'],
+      ['SP Flash Tool lỗi Mediatek','Flash Tool không flash được MTK','Nguyên nhân: Driver MTK Preloader chưa cài, scatter sai.\n\nCách sửa:\n1. Cài MTK VCOM USB Preloader driver\n2. Tắt Driver Signature Windows\n3. Dùng đúng Scatter file cho model\n4. Dùng SP Flash Tool v5.1\n5. Tắt máy trước khi kết nối'],
+      ['Partition hỏng Can\'t mount','Recovery báo lỗi mount partition','Nguyên nhân: EMMC lỗi, filesystem corrupt.\n\nCách sửa:\n1. Recovery → Wipe → Format Data\n2. Flash lại ROM từ đầu\n3. EMMC hỏng vật lý → thay chip\n\nLưu ý: Format Data cũng lỗi = EMMC hỏng vật lý.'],
+      ['Deep Sleep không hoạt động','Pin hao nhanh khi màn tắt','Nguyên nhân: App giữ wakelock, GPS luôn bật.\n\nCách sửa:\n1. BetterBatteryStats tìm app giữ wakelock\n2. Tắt GPS, WiFi scan liên tục\n3. MIUI: Battery → App battery saver\n\nLưu ý: Google Location History thường là thủ phạm.'],
+      ['Bootloader bị khóa','Unlock bootloader thất bại','Nguyên nhân: Xiaomi chờ 720h, tài khoản bị ban.\n\nCách sửa:\n1. Xiaomi: Mi Account + Mi Unlock Tool → chờ đủ ngày\n2. Samsung: Không unlock chính thức\n3. Pixel: fastboot flashing unlock trực tiếp\n4. OnePlus: fastboot oem unlock'],
+      ['ROM flash xong không boot','Sau flash ROM không khởi động','Nguyên nhân: ROM sai region hoặc model.\n\nCách sửa:\n1. Xác định model: Settings → About\n2. Flash stock ROM chính hãng\n3. Wipe tất cả trước flash\n4. Xiaomi: dùng MiFlash\n\nLưu ý: Sai model = brick.'],
+      ['Factory Reset kẹt không xong','Recovery wipe data bị kẹt','Nguyên nhân: EMMC lỗi, partition đang mount.\n\nCách sửa:\n1. Thử Format Data thay Wipe Data\n2. Flash TWRP mới\n3. Flash lại ROM hoàn chỉnh'],
+    ],
+    "\ud83d\udcfa M\u00e0n H\u00ecnh & C\u1ea3m \u1ee8ng":[
+      ['Màn hình nhấp nháy liên tục','Display blink không ngừng','Nguyên nhân: AMOLED PWM flicker, driver lỗi, flex lỏng.\n\nCách sửa:\n1. Tăng độ sáng trên 50 phần trăm\n2. Thử tắt Smooth Display từ 120Hz xuống 60Hz\n3. Wipe cache partition\n4. Flex lỏng: mở máy cắm lại\n\nLưu ý: AMOLED flicker ở sáng thấp là bình thường, bật DC Dimming.'],
+      ['Burn-in AMOLED hình bóng ma','Hình ảnh ma trên màn OLED','Nguyên nhân: Dùng nav bar tĩnh lâu dài, sáng cao.\n\nCách sửa:\n1. App AMOLED Burn-in Fixer chạy 30-60 phút\n2. Bật Screen Shift / Pixel Shift\n3. Dùng dark theme, gesture navigation\n4. Thay màn nếu nặng\n\nLưu ý: Không hoàn toàn khắc phục được.'],
+      ['Ghost touch cảm ứng tự nhấn','Màn tự thao tác không ai chạm','Nguyên nhân: Kính cường lực kém, màn bẩn, flex lỏng.\n\nCách sửa:\n1. Lau sạch màn, bỏ kính cường lực thử\n2. Bỏ case\n3. Wipe cache partition\n4. Thay màn nếu phần cứng\n\nLưu ý: Kính CL kém chất lượng gây ghost touch rất phổ biến.'],
+      ['Proximity sensor lỗi','Màn sáng khi áp tai gọi điện','Nguyên nhân: Cảm biến bẩn, màng dán che.\n\nCách sửa:\n1. Vệ sinh vùng proximity sensor\n2. Mã *#0*# → Sensor → test\n3. Gỡ cài lại app điện thoại\n4. Wipe cache\n\nLưu ý: Màng dán che cảm biến rất hay gặp.'],
+      ['Dead pixel điểm ảnh chết','Điểm màu bất thường cố định','Nguyên nhân: Lỗi sản xuất, va đập.\n\nCách sửa:\n1. Dead Pixel Fix app 30-60 phút cho pixel stuck\n2. Massage nhẹ bằng vải mềm\n3. Trong bảo hành: đổi máy khi trên 3-5 pixel\n\nLưu ý: Pixel stuck có thể sửa; pixel dead cần thay màn.'],
+      ['Màn hình sọc dọc ngang','Đường sọc xuất hiện trên display','Nguyên nhân: Flex cáp lỏng, IC display lỗi.\n\nCách sửa:\n1. Restart\n2. Ép máy thấy sọc biến = flex lỏng → cắm lại\n3. Thay màn\n\nLưu ý: Sọc sau rơi thường do flex lỏng.'],
+      ['120Hz không bật được','Màn kẹt 60Hz','Nguyên nhân: Battery Saver bật, máy nóng.\n\nCách sửa:\n1. Display → Motion Smoothness → Adaptive\n2. Tắt Battery Saver\n3. Máy dưới 40 độ C\n\nLưu ý: Tự hạ Hz khi pin thấp là bình thường.'],
+      ['Cảm ứng lệch sau thay màn','Touch offset sau sửa','Nguyên nhân: Màn kém, driver chưa cập nhật.\n\nCách sửa:\n1. Calibrate cảm ứng Dev Options\n2. Flash firmware cảm ứng\n3. Đổi màn chính hãng'],
+    ],
+    "\ud83d\udcf6 M\u1ea1ng & K\u1ebft N\u1ed1i":[
+      ['Không nhận SIM No SIM','Máy không đọc SIM','Nguyên nhân: SIM lệch, chip bẩn, baseband lỗi.\n\nCách sửa:\n1. Tháo SIM, lau chip vàng\n2. Kiểm tra khay không cong\n3. Thử SIM trên máy khác\n4. Flash lại baseband firmware\n\nLưu ý: IC SIM hỏng cần thay 200-400k.'],
+      ['4G 5G mất sóng liên tục','Sóng di động chập chờn','Nguyên nhân: Ăng-ten lỏng, IMEI lỗi.\n\nCách sửa:\n1. Settings → Mobile Networks → chọn mạng thủ công\n2. Bật tắt Airplane Mode\n3. Lau SIM, thử SIM khác\n4. IMEI trống: flash modem\n\nLưu ý: Case kim loại che sóng.'],
+      ['WiFi không bật bị xám','Nút WiFi xám không bật','Nguyên nhân: Firmware crash WiFi module.\n\nCách sửa:\n1. Restart\n2. Wipe cache partition\n3. Airplane mode bật tắt nhiều lần\n4. Clear data Wi-Fi app\n5. Factory Reset → IC WiFi hỏng: sửa HW'],
+      ['WiFi kết nối không có internet','Connected nhưng không vào web','Nguyên nhân: DNS lỗi, IP conflict.\n\nCách sửa:\n1. Quên mạng rồi kết nối lại\n2. DNS tĩnh 8.8.8.8 hoặc 1.1.1.1\n3. Restart router\n4. Tắt VPN'],
+      ['Bluetooth không ghép đôi','Pair BT thất bại','Nguyên nhân: Cache lỗi, thiết bị đã ghép nơi khác.\n\nCách sửa:\n1. Xóa thiết bị đã ghép cả hai đầu\n2. Bluetooth → Clear Cache + Data\n3. Restart, đặt dưới 1m'],
+      ['Hotspot không hoạt động','Không thiết bị nào vào được','Nguyên nhân: SSID ký tự đặc biệt, VPN.\n\nCách sửa:\n1. Đổi tên hotspot chỉ a-z, 0-9\n2. Đổi mật khẩu\n3. 5GHz → 2.4GHz\n4. Tắt VPN'],
+      ['NFC không đọc thẻ','NFC không phản hồi','Nguyên nhân: NFC tắt, case cản, vị trí sai.\n\nCách sửa:\n1. Settings → NFC → bật\n2. Tháo case\n3. Căn đúng vị trí ăng-ten giữa lưng\n\nLưu ý: Case nhôm chặn NFC hoàn toàn.'],
+      ['GPS không định vị','Bản đồ không bắt vị trí','Nguyên nhân: A-GPS data lỗi, quyền tắt.\n\nCách sửa:\n1. Settings → Location → High Accuracy\n2. GPS Status → xóa A-GPS data → tải lại\n3. Ra ngoài trời thoáng'],
+      ['USB Tethering không nhận PC','Chia sẻ mạng USB lỗi','Nguyên nhân: Driver RNDIS chưa cài.\n\nCách sửa:\n1. Hotspot → USB Tethering → bật\n2. PC: cài RNDIS driver\n3. Thử cổng USB hoặc cáp khác'],
+    ],
+    "\ud83d\udd0a \u00c2m Thanh & Camera":[
+      ['Mất âm thanh hoàn toàn','Loa và tai nghe không có tiếng','Nguyên nhân: Volume tắt, app chiếm audio, IC âm thanh lỗi.\n\nCách sửa:\n1. Kiểm tra Media Ringtone Notification volume riêng\n2. Cắm tai nghe vào rồi rút\n3. Tắt Do Not Disturb\n4. Wipe cache\n5. Safe Mode kiểm tra app\n\nLưu ý: Cắm tai nghe bị giả kẹt = máy nghĩ tai nghe vẫn cắm.'],
+      ['Micro không thu âm','Người nghe không nghe được','Nguyên nhân: Lỗ micro bẩn, quyền bị tắt.\n\nCách sửa:\n1. Vệ sinh lỗ micro dưới đáy máy\n2. Settings → Privacy → Microphone → kiểm tra quyền\n3. Gỡ cài lại app điện thoại\n4. Thử ghi âm bằng Voice Recorder'],
+      ['Camera đen crash khi mở','App camera bị đen hoặc thoát','Nguyên nhân: App xung đột chiếm camera, cache corrupt.\n\nCách sửa:\n1. Camera → Force Stop → Clear Cache → Clear Data\n2. Restart\n3. Safe Mode thử camera\n4. Force stop WhatsApp TikTok trước\n\nLưu ý: Force stop các app video call trước.'],
+      ['Camera mờ không lấy nét','Tất cả ảnh đều mờ','Nguyên nhân: Kính camera bẩn, OIS bị lock.\n\nCách sửa:\n1. Lau sạch kính camera bằng microfiber\n2. Chụp ánh sáng tốt\n3. Nhấn giữ để lock AF\n4. Clear Camera data\n5. Kiểm tra màng bọc kính chưa tháo'],
+      ['Loa ngoài rè méo tiếng','Âm thanh méo volume cao','Nguyên nhân: Loa hỏng màng, bụi trong loa.\n\nCách sửa:\n1. Vặn nhỏ volume còn rè không\n2. Vệ sinh loa bằng bàn chải mềm\n3. Tắt Dolby Atmos và sound effects\n4. Thay loa 100-200k\n\nLưu ý: Sau 1-2 năm bụi loa rất phổ biến.'],
+    ],
+    "\ud83d\udd0b Pin & S\u1ea1c":[
+      ['Sạc chậm bất thường','Pin sạc rất lâu không fast charge','Nguyên nhân: Cáp kém, adapter sai watt, cổng bẩn.\n\nCách sửa:\n1. Thử cáp và adapter khác gốc\n2. Vệ sinh cổng USB-C\n3. Tắt màn khi sạc\n4. Tắt Adaptive Charging\n5. Kiểm tra adapter đúng watt\n\nLưu ý: Cáp USB-C cần chip E-Mark cho fast charge.'],
+      ['Pin hao nhanh sau update','Battery drain đột ngột tăng','Nguyên nhân: Hệ thống re-index, app cần update.\n\nCách sửa:\n1. Chờ 24-48h sau update để optimize\n2. Settings → Battery → xem app nào dùng nhiều\n3. Safe Mode xác định app drain\n4. Tắt location, sync account\n\nLưu ý: Thường ổn định sau 2-3 ngày.'],
+      ['Máy tắt khi còn 15-40% pin','Shutdown đột ngột','Nguyên nhân: Pin chai, calibration sai.\n\nCách sửa:\n1. Calibrate: xả 0% → sạc 100% × 3 lần\n2. AccuBattery đo battery health\n3. Pin dưới 70% health → thay pin\n\nLưu ý: Pin Li-ion sau 2-3 năm hoặc 500 chu kỳ.'],
+      ['Pin phồng nắp lưng hở','Battery phình đẩy nắp ra','NGUY HIỂM - Cách xử lý:\n1. NGỪNG SẠC NGAY\n2. Không ép nắp lại\n3. Tránh xa lửa và nhiệt\n4. Thay pin NGAY tại trung tâm\n\nLưu ý: Pin phồng có thể nổ hoặc cháy.'],
+      ['Không sạc pin từ 0%','Cắm sạc không phản hồi','Nguyên nhân: Pin quá kiệt, IC sạc chậm.\n\nCách sửa:\n1. Cắm sạc chờ 30-60 phút không làm gì\n2. Dùng adapter 5W-10W, không fast charge\n3. Sau 30 phút: Power 10s\n4. Thay pin nếu vẫn không\n\nLưu ý: Trickle charge khi dưới 1% mất 30-60 phút mới đủ boot.'],
+    ],
+    "\ud83d\udcf1 \u1ee8ng D\u1ee5ng":[
+      ['App crash liên tục','Ứng dụng đóng đột ngột','Nguyên nhân: Cache hỏng, RAM không đủ, phiên bản lỗi.\n\nCách sửa:\n1. Settings → Apps → Clear Cache\n2. Update app\n3. Uninstall rồi reinstall\n4. Kiểm tra storage còn trên 500MB\n\nLưu ý: Xem review Play Store gần đây, nhiều người báo = lỗi server.'],
+      ['Play Store lỗi 495 504 491','Không tải được app','Nguyên nhân: Cache Google Play lỗi.\n\nCách sửa:\n1. Google Play Store → Clear Cache + Data\n2. Google Play Services → Clear Cache\n3. Kiểm tra ngày giờ đúng\n4. Bỏ Google Account rồi thêm lại\n5. Đổi WiFi hoặc dùng 4G'],
+      ['App ngân hàng lỗi root detect','Banking app từ chối do root','Nguyên nhân: SafetyNet Play Integrity fail.\n\nCách sửa:\n1. Magisk → MagiskHide cho app ngân hàng\n2. Module Universal SafetyNet Fix\n3. Magisk → DenyList cho banking app\n4. Magisk → tắt Zygisk thử\n\nLưu ý: Android 13+ dùng Play Integrity API.'],
+      ['MIUI ColorOS kill app nền','App bị tắt ngầm liên tục','Nguyên nhân: Aggressive battery optimization.\n\nCách sửa:\n1. Settings → Apps → Battery → No restrictions\n2. Lock app trong Recent Apps\n3. MIUI: Battery → App battery saver → Off\n4. Tắt MIUI Optimization trong Dev options\n\nLưu ý: Xiaomi nổi tiếng aggressive kill.'],
+      ['Notification không xuất hiện','Thông báo không hiện','Nguyên nhân: DND bật, channel tắt, app bị kill.\n\nCách sửa:\n1. Settings → Notifications → App → bật tất cả channels\n2. Tắt DND và Bedtime mode\n3. App Battery → No Restrictions\n4. MIUI: Notifications → App notifications → bật'],
+    ],
+    "\ud83d\udcbe B\u1ed9 Nh\u1edb":[
+      ['Bộ nhớ đầy không xóa được','Storage full dù đã xóa','Nguyên nhân: Cache, WhatsApp media, ảnh trùng.\n\nCách sửa:\n1. Settings → Storage → Free up space\n2. WhatsApp → Storage → Manage → xóa media lớn\n3. Files by Google tìm file trùng\n4. Upload Google Photos rồi xóa local'],
+      ['SD card không nhận','Thẻ nhớ không đọc được','Nguyên nhân: SD bẩn, format lỗi, slot lỏng.\n\nCách sửa:\n1. Lau tiếp điểm vàng\n2. Thử thẻ trên PC\n3. Format FAT32 dưới 32GB, exFAT trên 32GB\n4. Dùng thẻ Class 10 hoặc A1\n\nLưu ý: Thẻ giả Samsung Evo fake rất phổ biến.'],
+      ['MTP không nhận Windows','Cắm USB PC không nhận máy','Nguyên nhân: MTP driver lỗi, chế độ USB sai.\n\nCách sửa:\n1. Kéo thông báo → USB → File Transfer MTP\n2. PC: Device Manager → Portable Devices → Update\n3. Cài lại Windows Media Player\n4. Thử cổng USB hoặc cáp khác'],
+    ],
+    "\ud83c\udde8\ud83c\uddf3 M\u00e1y N\u1ed9i \u0110\u1ecba TQ":[
+      ['Không có Google Play Store','Máy TQ thiếu GMS','Nguyên nhân: Google bị chặn tại TQ.\n\nCách sửa:\n1. Xiaomi OPPO Vivo: Flash ROM Global\n2. Huawei: GMS Installer hoặc APKPure\n3. Cài APK: Google Framework + Play Services + Play Store\n4. Dùng Aurora Store thay thế\n\nLưu ý: ROM Global đơn giản nhất.'],
+      ['HarmonyOS không có Google','Huawei HarmonyOS thiếu GMS','Nguyên nhân: Huawei bị cấm vận Mỹ 2019.\n\nCách sửa:\n1. Petal Search thay Play Store\n2. APK từ APKPure hoặc Aptoide\n3. GSpace giả lập Google\n4. Petal Maps và Huawei Pay thay thế\n\nLưu ý: Zalo Facebook YouTube vẫn cài được.'],
+      ['MIUI 14 chặn cài APK','Xiaomi block install từ ngoài','Nguyên nhân: MIUI 14 tăng bảo mật.\n\nCách sửa:\n1. Settings → Privacy → Special app access → Install unknown apps → bật per-app\n2. Developer Options → Install via USB\n3. Tắt MIUI Optimization'],
+    ],
+  },
+  "iphone":{
+    "\ud83d\udd04 H\u1ec7 Th\u1ed1ng & Boot":[
+      ['iPhone treo táo quay vòng','Màn hình táo xoay không boot','Nguyên nhân: iOS update lỗi, partition hỏng, storage đầy.\n\nCách sửa:\n1. Force restart:\n   - iPhone 8 X 11 12 13 14 15: Vol Up → Vol Down → giữ Power\n   - iPhone 7: Power + Vol Down\n   - iPhone 6s: Power + Home\n2. Recovery Mode + iTunes Finder → Update giữ data\n3. Nếu Update fail → Restore mất data\n\nLưu ý: Thử Update trước để giữ dữ liệu.'],
+      ['iTunes lỗi 4013 4005 3194','Restore báo lỗi số','Nguyên nhân: USB không ổn định, server check lỗi.\n\nCách sửa:\n1. Thử cáp khác MFi chính hãng\n2. Cổng USB trực tiếp mainboard không qua hub\n3. Tắt firewall và antivirus tạm\n4. Lỗi 3194: sửa file hosts, xóa dòng gs.apple.com\n5. Thử máy tính khác\n\nLưu ý: Lỗi 4013 đổi cáp fix được 80%.'],
+      ['iPhone vô hiệu hóa quên mật khẩu','iPhone is disabled','Nguyên nhân: Nhập sai 10 lần.\n\nCách sửa:\n1. iCloud.com → Find My → Erase device\n2. Recovery Mode + iTunes → Restore\n3. iOS 15.2+: Reset từ màn khóa khi thất bại 10 lần\n\nLưu ý: Không có cách giữ data nếu không có backup.'],
+      ['iCloud Activation Lock','Yêu cầu Apple ID cũ sau reset','Nguyên nhân: Reset khi iCloud chưa tắt, máy secondhand.\n\nCách sửa:\n1. Đăng nhập appleid.apple.com → Recovery\n2. Apple Store + hóa đơn mua hàng\n3. Máy cũ: yêu cầu người bán xóa trước khi mua\n\nLưu ý: Không có cách bypass hợp pháp không có Apple ID gốc.'],
+      ['DFU Mode cách vào','Cần DFU để restore sâu','Cách vào DFU iPhone 8 X 11 12 13 14 15:\n1. Kết nối vào iTunes hoặc Finder\n2. Nhấn nhanh: Vol Up → Vol Down\n3. Giữ Power 3 giây\n4. Giữ tiếp Vol Down thêm 10 giây không thả Power\n5. Thả Power, tiếp tục giữ Vol Down 5 giây\n6. Màn đen hoàn toàn = DFU thành công\n\nLưu ý: Mất toàn bộ data, dùng khi các cách khác fail.'],
+      ['Baseband error mất IMEI','IMEI trống sau sửa','Nguyên nhân: IC baseband hỏng, logic board lỗi.\n\nCách sửa:\n1. Restore iOS\n2. Sửa logic board thay IC baseband\n\nLưu ý: Chi phí sửa logic board cao, cân nhắc so với giá máy.'],
+    ],
+    "\ud83d\udcfa M\u00e0n H\u00ecnh & C\u1ea3m \u1ee8ng":[
+      ['Màn xanh lá green line','Sọc xanh dọc màn OLED','Nguyên nhân: OLED panel defect.\n\nCách sửa:\n1. Force restart\n2. Apple Store: iPhone 12 13 14 được thay miễn phí\n3. Hết bảo hành: thay panel OLED\n\nLưu ý: Apple Genius Bar thay miễn phí cho lỗi green line.'],
+      ['Face ID lỗi không mở khóa','Face ID thất bại liên tục','Nguyên nhân: Camera TrueDepth bẩn, thay đổi ngoại hình.\n\nCách sửa:\n1. Lau sạch camera TrueDepth vùng notch\n2. Settings → Face ID → Reset → Enroll lại\n3. Thêm Alternate Appearance\n4. Không dùng ngoài nắng gắt\n\nLưu ý: TrueDepth camera paired với logic board.'],
+      ['Touch ID không nhận vân tay','Nút Home không nhận','Nguyên nhân: Ngón tay ướt, sensor lỗi, Home Button đổi.\n\nCách sửa:\n1. Lau khô ngón tay và nút Home\n2. Settings → Touch ID → xóa → đăng ký lại\n3. Đăng ký nhiều góc độ khác nhau\n\nLưu ý: Thay Home Button từ máy khác = mất Touch ID vĩnh viễn.'],
+      ['True Tone mất sau thay màn','True Tone biến mất sau sửa','Nguyên nhân: True Tone data trong EEPROM màn cũ.\n\nCách sửa:\n1. Thợ cần transfer True Tone data bằng JC Pro1000S\n2. Không có tool: True Tone mất vĩnh viễn\n3. Thay tại Apple Store để giữ True Tone\n\nLưu ý: JC Pro1000S có thể ghi lại True Tone data.'],
+      ['ProMotion 120Hz tắt tự động','Màn kẹt 60Hz','Nguyên nhân: Low Power Mode, iOS bug.\n\nCách sửa:\n1. Tắt Low Power Mode\n2. Settings → Accessibility → Motion → tắt Prefer Cross-Fade\n3. Update iOS'],
+    ],
+    "\ud83d\udcf6 M\u1ea1ng & K\u1ebft N\u1ed1i":[
+      ['No Service Searching liên tục','Thanh sóng trống','Nguyên nhân: Modem lỗi, SIM hỏng, carrier profile cũ.\n\nCách sửa:\n1. Bật tắt Airplane Mode 3 lần\n2. Settings → General → Reset → Reset Network Settings\n3. Settings → General → About → Carrier Update → cài\n4. Thử SIM khác\n5. Restore iOS\n\nLưu ý: Reset Network Settings thường fix carrier issues.'],
+      ['WiFi bị xám không bật','Nút WiFi grayed out','Nguyên nhân: iOS lỗi, chip WiFi nóng, rơi nước.\n\nCách sửa:\n1. Force restart\n2. Reset Network Settings\n3. Để máy nguội\n4. Restore iOS\n5. Vẫn xám: chip WiFi hỏng HW\n\nLưu ý: Dùng Hotspot trong khi chờ sửa.'],
+      ['AirDrop không tìm thấy','AirDrop không thấy thiết bị','Nguyên nhân: AirDrop Contacts Only, WiFi BT tắt, Hotspot đang bật.\n\nCách sửa:\n1. Control Center → AirDrop → Everyone for 10 Minutes\n2. Bật WiFi và Bluetooth\n3. Tắt Personal Hotspot\n4. Đặt dưới 9m\n\nLưu ý: iOS 16+ đổi thành 10 phút để bảo mật.'],
+      ['Personal Hotspot lỗi','Chia sẻ mạng iPhone không kết nối','Nguyên nhân: Gói data chặn tethering, iOS bug.\n\nCách sửa:\n1. Settings → Personal Hotspot → tắt rồi bật\n2. Đổi tên hotspot không ký tự đặc biệt\n3. Thử BT hoặc USB thay WiFi\n4. Reset Network Settings\n5. Liên hệ nhà mạng kiểm tra gói'],
+      ['CarPlay không kết nối','Apple CarPlay không nhận xe','Nguyên nhân: USB port xe lỗi, iPhone chưa tin cậy.\n\nCách sửa:\n1. Thử cáp USB-A khác\n2. iPhone → tin cậy xe khi cắm\n3. Siri phải được bật\n4. Settings → General → CarPlay → cài lại xe\n5. Wireless CarPlay: Bluetooth + WiFi bật'],
+    ],
+    "\ud83d\udd0b Pin & S\u1ea1c":[
+      ['Pin hao nhanh bất thường','Battery drain không bình thường','Nguyên nhân: Battery Health thấp, background apps.\n\nCách sửa:\n1. Settings → Battery → Battery Health nếu dưới 80% thay pin\n2. Xem app nào dùng nhiều\n3. Settings → Privacy → Location → tắt Always bớt app\n4. Tắt Background App Refresh\n5. Dark Mode tiết kiệm pin OLED\n\nLưu ý: iOS 17+ có Low Power Mode tự động.'],
+      ['Không sạc Lightning USB-C','Cắm cáp không sạc','Nguyên nhân: Cổng bẩn, cáp không MFi.\n\nCách sửa:\n1. Vệ sinh cổng Lightning bằng tăm gỗ\n2. Thử cáp Apple gốc\n3. Sạc không dây MagSafe bypass cổng\n4. Kiểm tra kim cổng bị cong\n\nLưu ý: Lightning hay đứt kim do cắm lệch.'],
+      ['MagSafe sạc chậm không 15W','MagSafe chỉ 5-7W','Nguyên nhân: Adapter dưới 20W, case không MagSafe, lệch tâm.\n\nCách sửa:\n1. Dùng Apple 20W USB-C adapter hoặc cao hơn\n2. Căn đúng tâm MagSafe\n3. Dùng case Made for MagSafe\n4. Update iOS\n\nLưu ý: MagSafe 15W chỉ iPhone 12+, adapter dưới 20W = 12W.'],
+      ['Battery Health giảm nhanh','Sức khỏe pin xuống nhanh','Nguyên nhân: Sạc qua đêm, nhiệt độ cao.\n\nCách sửa:\n1. Bật Optimized Battery Charging\n2. iOS 17: giới hạn sạc 80%\n3. Tránh pin dưới 20% thường xuyên\n4. Không sạc khi máy nóng\n\nLưu ý: 500 chu kỳ khoảng 80% capacity sau 1.5-2 năm.'],
+    ],
+    "\u2601\ufe0f iCloud & Apple ID":[
+      ['iCloud Photos không sync','Ảnh không upload lên cloud','Nguyên nhân: iCloud đầy, WiFi không ổn, Photos tắt.\n\nCách sửa:\n1. Settings → iCloud → Photos → iCloud Photos ON\n2. Kiểm tra dung lượng iCloud\n3. WiFi + sạc + màn tắt để upload\n4. Tắt Low Data Mode\n5. Sign out iCloud rồi Sign in lại\n\nLưu ý: Library đầu tiên upload nhiều giờ.'],
+      ['Apple ID bị khóa disabled','Tài khoản Apple bị lock','Nguyên nhân: Sai password nhiều lần, hoạt động bất thường.\n\nCách sửa:\n1. iforgot.apple.com → Reset Password\n2. Xác minh qua trusted device\n3. Apple Support → Account Recovery 5-7 ngày nếu không có trusted device'],
+      ['iCloud Backup thất bại','Backup không hoàn thành','Nguyên nhân: iCloud đầy, WiFi không ổn, không cắm sạc.\n\nCách sửa:\n1. iCloud đủ dung lượng bằng dung lượng đang dùng trên máy\n2. Cắm sạc + WiFi + màn tắt\n3. Settings → iCloud → Backup → Back Up Now\n4. Tắt backup app tốn nhiều\n\nLưu ý: 5GB miễn phí không đủ, mua 50GB khoảng 50k mỗi tháng.'],
+      ['App Store không tải được','Cannot connect to App Store','Nguyên nhân: Apple server lỗi, tài khoản vấn đề.\n\nCách sửa:\n1. Kiểm tra apple.com/support/systemstatus\n2. Tắt bật WiFi, thử 4G\n3. Sign out rồi Sign in lại\n4. Settings → Screen Time → tắt App restriction\n5. DNS 8.8.8.8'],
+    ],
+    "\ud83d\udcf1 iOS & \u1ee8ng D\u1ee5ng":[
+      ['iOS update treo không cài','Bản iOS treo khi cài','Nguyên nhân: Pin thấp, storage đầy, file lỗi.\n\nCách sửa:\n1. Pin trên 50%, storage trên 6GB\n2. Settings → Storage → xóa iOS đã tải rồi tải lại\n3. Update qua Finder hoặc iTunes từ PC\n\nLưu ý: Finder ổn định hơn OTA khi máy đang lỗi.'],
+      ['iMessage không gửi được','Tin nhắn lỗi đỏ','Nguyên nhân: iMessage server, Apple ID lỗi.\n\nCách sửa:\n1. Settings → Messages → iMessage → tắt bật\n2. Send & Receive → kiểm tra Apple ID\n3. Đăng xuất iMessage rồi đăng nhập lại\n4. Reset Network Settings\n\nLưu ý: Đổi từ Android: tắt iMessage trên Android cũ TRƯỚC khi đổi.'],
+      ['Siri không phản hồi','Hey Siri không hoạt động','Nguyên nhân: Hey Siri tắt, micro lỗi, DND.\n\nCách sửa:\n1. Settings → Siri → Listen for Hey Siri → bật rồi re-train\n2. Tắt DND\n3. Test micro bằng ghi âm\n4. Force restart'],
+      ['Screen Time PIN bị quên','Không nhớ mật khẩu Screen Time','Nguyên nhân: Quên PIN 4 số.\n\nCách sửa:\n1. Settings → Screen Time → Change Passcode → Forgot?\n2. Xác thực Apple ID\n3. Không có Apple ID liên kết: Backup → Erase → Restore\n\nLưu ý: Luôn liên kết Apple ID để recover.'],
+    ],
+  },
+  "windows":{
+    "\ud83d\udc99 BSOD & Stop Codes":[
+      ['BSOD DPC_WATCHDOG_VIOLATION','Màn xanh DPC Watchdog','Nguyên nhân: Driver tương thích kém, SSD firmware cũ, Intel RST lỗi.\n\nCách sửa:\n1. Device Manager → update driver dấu chấm than\n2. Update Intel RST Rapid Storage Technology\n3. Update SSD firmware qua Samsung Magician hoặc WD Dashboard\n4. sfc /scannow trong CMD Admin\n5. Event Viewer → System → xem log BSOD\n\nLưu ý: SSD firmware cũ là nguyên nhân phổ biến nhất.'],
+      ['BSOD WHEA_UNCORRECTABLE_ERROR','Màn xanh lỗi phần cứng','Nguyên nhân: CPU RAM overclock, RAM lỗi, PSU yếu.\n\nCách sửa:\n1. BIOS → tắt XMP EXPO và OC\n2. MemTest86 qua USB test 2+ passes\n3. Event Viewer → WHEA-Logger → xem lỗi CPU RAM PCIe\n4. Update BIOS\n\nLưu ý: WHEA + XMP = RAM không đạt tốc độ XMP.'],
+      ['BSOD MEMORY_MANAGEMENT','Lỗi quản lý bộ nhớ','Nguyên nhân: RAM lỗi, pagefile hỏng.\n\nCách sửa:\n1. Win+R → mdsched.exe → test RAM\n2. MemTest86 USB toàn diện hơn\n3. Tháo 1 thanh RAM thử từng thanh\n4. sfc /scannow và chkdsk /f\n\nLưu ý: RAM cắm sai khe cần A2+B2 cũng gây lỗi.'],
+      ['BSOD VIDEO_TDR_FAILURE','GPU driver timeout BSOD','Nguyên nhân: GPU driver crash, quá nhiệt, PCIe lỏng.\n\nCách sửa:\n1. DDU Display Driver Uninstaller → gỡ clean\n2. Cài driver GPU mới từ nvidia.com hoặc amd.com\n3. HWiNFO64 → kiểm tra nhiệt GPU dưới 85 độ C\n4. Cắm lại card PCIe\n5. Test bằng FurMark\n\nLưu ý: DDU chạy trong Safe Mode để gỡ sạch.'],
+      ['BSOD INACCESSIBLE_BOOT_DEVICE','Không truy cập được ổ boot','Nguyên nhân: Driver storage lỗi, AHCI RAID đổi.\n\nCách sửa:\n1. BIOS → Storage → đổi RAID sang AHCI thử\n2. Boot USB Windows → Startup Repair\n3. CMD: bootrec /fixmbr rồi bootrec /fixboot rồi bootrec /rebuildbcd\n4. Kiểm tra cáp SATA và nguồn ổ cứng'],
+      ['BSOD CRITICAL_PROCESS_DIED','Tiến trình hệ thống bị dừng','Nguyên nhân: File hệ thống hỏng, malware, update lỗi.\n\nCách sửa:\n1. sfc /scannow\n2. DISM /Online /Cleanup-Image /RestoreHealth\n3. Quét virus offline\n4. chkdsk C: /f /r\n5. System Restore\n\nLưu ý: Sau malware cleanup hay thấy BSOD này.'],
+      ['BSOD DRIVER_IRQL_NOT_LESS_OR_EQUAL','Driver IRQL màn xanh','Nguyên nhân: Driver lỗi truy cập bộ nhớ sai.\n\nCách sửa:\n1. Xem file .sys trong C:\\Windows\\Minidump\n2. Dùng BlueScreenView NirSoft free\n3. Tìm driver ứng với .sys → update hoặc rollback\n4. Safe Mode → gỡ driver nghi ngờ'],
+      ['BSOD BAD_POOL_HEADER','Pool header hỏng BSOD','Nguyên nhân: Driver lỗi, RAM, antivirus xung đột.\n\nCách sửa:\n1. Tắt gỡ antivirus bên thứ ba thử\n2. MemTest86\n3. sfc /scannow\n4. BlueScreenView xem .sys file\n\nLưu ý: Antivirus kernel driver thường là thủ phạm.'],
+      ['BSOD CLOCK_WATCHDOG_TIMEOUT','CPU core timeout BSOD','Nguyên nhân: CPU OC, RAM không ổn định.\n\nCách sửa:\n1. BIOS → Load Optimized Defaults\n2. Tắt XMP EXPO\n3. Tắt Turbo Boost và Core Performance Boost\n4. Update BIOS\n\nLưu ý: Ryzen đời đầu hay gặp, cần BIOS update AGESA.'],
+      ['BSOD PAGE_FAULT_IN_NONPAGED','Lỗi trang bộ nhớ','Nguyên nhân: Driver lỗi, RAM hỏng, ổ bad sector.\n\nCách sửa:\n1. MemTest86\n2. chkdsk /f /r\n3. sfc /scannow\n4. Rollback driver gần đây\n\nLưu ý: ntfs.sys trong tên = ổ cứng lỗi sector.'],
+    ],
+    "\ud83d\ude80 Boot & Kh\u1edfi \u0110\u1ed9ng":[
+      ['Windows không boot vòng lặp','Restart mãi không vào Windows','Nguyên nhân: File hệ thống hỏng, update gián đoạn.\n\nCách sửa:\n1. Tắt đột ngột 3 lần → tự vào Recovery Environment\n2. Troubleshoot → Advanced → Startup Repair\n3. Advanced → CMD: bootrec /fixmbr → bootrec /fixboot → bootrec /rebuildbcd\n4. System Restore'],
+      ['BitLocker cần Recovery Key','Yêu cầu BitLocker key','Nguyên nhân: Thay phần cứng, BIOS update, TPM reset.\n\nCách sửa:\n1. Key ở: aka.ms/myrecoverykey đăng nhập Microsoft Account\n2. File đã lưu hoặc USB backup\n3. IT admin: Active Directory\n\nLưu ý: Không có key = không thể truy cập. Luôn lưu key lên Microsoft Account.'],
+      ['Fast Startup gây lỗi boot','Crash sau tắt bằng Fast Startup','Nguyên nhân: Hibernate kernel file corrupt.\n\nCách sửa:\n1. Control Panel → Power Options → Choose what power buttons do\n2. Bỏ chọn Turn on fast startup\n3. powercfg /hibernate off\n\nLưu ý: Fast Startup tiết kiệm 5-10s nhưng gây nhiều lỗi.'],
+      ['Windows khởi động chậm 5-10 phút','Boot rất lâu dù SSD','Nguyên nhân: Startup apps nhiều, service lỗi, SSD lỗi.\n\nCách sửa:\n1. Task Manager → Startup → Disable không cần\n2. msconfig → Services → Hide Microsoft → Disable hết\n3. Event Viewer → System → xem lỗi boot\n4. CrystalDiskInfo kiểm tra SSD health\n\nLưu ý: SSD NVMe boot 10-15s, nếu lâu hơn có vấn đề.'],
+      ['GRUB rescue sau dual boot Linux','GRUB error sau cài Linux','Nguyên nhân: GRUB ghi đè Windows bootloader.\n\nCách sửa:\nBoot USB Windows → CMD:\nbootrec /fixmbr\nbootrec /fixboot\nbootrec /rebuildbcd\n\nHoặc từ Linux Live:\nsudo grub-install /dev/sda\nsudo update-grub'],
+    ],
+    "\ud83d\udd04 Windows Update":[
+      ['Windows Update lỗi 0x80070002','Update file không tìm thấy','Nguyên nhân: SoftwareDistribution folder corrupt, ngày giờ sai.\n\nCách sửa trong CMD Admin:\nnet stop wuauserv\nnet stop cryptSvc\nnet stop bits\nren C:\\Windows\\SoftwareDistribution SoftwareDistribution.old\nnet start wuauserv\nnet start cryptSvc\nnet start bits\n\nKiểm tra ngày giờ đúng.'],
+      ['Windows Update lỗi 0x800F0922','Feature Update không cài được','Nguyên nhân: Recovery partition nhỏ, VPN, antivirus.\n\nCách sửa:\n1. Tắt VPN\n2. Tải bằng Media Creation Tool\n3. Tắt antivirus tạm\n4. Giải phóng System Reserved trên 500MB'],
+      ['Windows 11 không đủ điều kiện','This PC doesn\'t meet requirements','Nguyên nhân: TPM 2.0 chưa bật, Secure Boot tắt, CPU cũ.\n\nCách sửa:\n1. BIOS → TPM PTT → Enable\n2. BIOS → Secure Boot → Enable\n3. CPU: Intel 8th gen+ hoặc Ryzen 2000+\n4. Rufus tạo USB bypass TPM check\n\nLưu ý: Rufus có option bypass TPM và Secure Boot.'],
+      ['Cumulative Update KB thất bại','Bản vá tháng không cài được','Nguyên nhân: Component store hỏng.\n\nCách sửa trong CMD Admin:\nDISM /Online /Cleanup-Image /CheckHealth\nDISM /Online /Cleanup-Image /RestoreHealth\n\nHoặc tải KB từ catalog.update.microsoft.com'],
+    ],
+    "\ud83d\udd0c Driver & Ph\u1ea7n C\u1ee9ng":[
+      ['Driver dấu chấm than Device Manager','Thiết bị Unknown Device lỗi','Nguyên nhân: Driver chưa cài, sai version.\n\nCách sửa:\n1. Device Manager → Properties → Details → Hardware IDs\n2. Copy ID → tìm driver tại devid.info hoặc driveridentifier.com\n3. Tải driver từ trang nhà sản xuất laptop hoặc mainboard\n\nLưu ý: HWiNFO64 nhận diện phần cứng tốt.'],
+      ['GPU driver crash TDR','Màn đen nháy TDR error','Nguyên nhân: VRAM không đủ, quá nhiệt, driver bug.\n\nCách sửa:\n1. DDU uninstall clean trong Safe Mode\n2. Cài driver GPU mới nhất\n3. HWiNFO64 kiểm tra nhiệt độ GPU dưới 85 độ C\n4. Vệ sinh tản nhiệt GPU, thay paste\n5. Kiểm tra PSU đủ watt\n\nLưu ý: DDU phải chạy trong Safe Mode.'],
+      ['USB Code 43 Device Not Recognized','USB báo lỗi code 43','Nguyên nhân: Driver corrupt, overcurrent, hub lỗi.\n\nCách sửa:\n1. Device Manager → USB Root Hub → Uninstall → Scan\n2. Thử cổng USB khác, tránh hub\n3. Update USB controller driver\n4. sfc /scannow\n\nLưu ý: Quá nhiều thiết bị trên hub tạo Code 43.'],
+      ['No audio output device installed','Windows không nhận sound card','Nguyên nhân: Driver bị gỡ sau update, BIOS tắt audio.\n\nCách sửa:\n1. Device Manager → Sound → Scan for hardware\n2. Tải Realtek driver từ trang mainboard hoặc laptop\n3. BIOS → Onboard Audio → Enable\n4. Services → Windows Audio → Start, Automatic'],
+      ['Printer offline driver corrupt','Máy in báo offline dù bật','Nguyên nhân: Print Spooler treo, driver corrupt, IP thay đổi.\n\nCách sửa trong CMD Admin:\nnet stop spooler\ndel /Q /F /S "%systemroot%\\System32\\spool\\PRINTERS\\*.*"\nnet start spooler\n\nXóa máy in rồi thêm lại bằng IP tĩnh.'],
+    ],
+    "\u26a1 Hi\u1ec7u N\u0103ng":[
+      ['CPU 100% không làm gì','CPU full load khi máy nhàn','Nguyên nhân: Malware, Windows Update indexing, driver loop.\n\nCách sửa:\n1. Task Manager → Details → CPU sort → xem process\n2. SearchIndexer.exe: Settings → Search → Pause indexing\n3. WmiPrvSE.exe: Services → Windows Management → Restart\n4. Quét virus offline\n\nLưu ý: Svchost.exe nhiều instance là bình thường.'],
+      ['Disk 100% Task Manager','Ổ cứng 100% liên tục','Nguyên nhân: SysMain Superfetch, Windows Search, HDD cũ.\n\nCách sửa:\n1. Services → SysMain → Stop, Disabled\n2. Services → Windows Search → Stop tạm\n3. Bật High Performance power plan\n4. chkdsk C: /f kiểm tra\n5. Nâng cấp SSD giải quyết triệt để\n\nLưu ý: HDD hao mòn = 100% disk liên tục.'],
+      ['FPS game giảm mạnh đột ngột','Frame rate tụt bất thường','Nguyên nhân: Thermal throttle, Power Plan, GPU driver.\n\nCách sửa:\n1. HWiNFO64 → nhiệt GPU CPU trên 90 độ C = throttle\n2. Power Plan → High Performance hoặc Ultimate\n3. NVIDIA: Prefer Maximum Performance\n4. Tắt Windows Game Mode\n5. Vệ sinh tản nhiệt, thay paste\n\nLưu ý: Laptop gaming 90 độ C bình thường, mua đế tản nhiệt.'],
+      ['SSD chậm không đạt spec','SSD NVMe chậm như HDD','Nguyên nhân: SLC cache đầy, AHCI thay NVMe, firmware cũ.\n\nCách sửa:\n1. Device Manager → Disk → Write-caching → Enable\n2. BIOS: M.2 slot bật NVMe không phải AHCI\n3. Update SSD firmware qua Samsung Magician hoặc WD Dashboard\n4. CrystalDiskMark đo thực tế\n5. SSD đầy trên 90% = chậm, giữ 20% trống\n\nLưu ý: CrystalDiskInfo kiểm tra SMART health.'],
+    ],
+    "\ud83c\udf10 M\u1ea1ng & Internet":[
+      ['WiFi dấu chấm than no internet','Connected nhưng không vào web','Nguyên nhân: DNS cache, IP conflict, proxy.\n\nCách sửa trong CMD Admin:\nipconfig /release\nipconfig /flushdns\nipconfig /renew\nnetsh int ip reset\nnetsh winsock reset\n\nĐổi DNS sang 8.8.8.8 hoặc 1.1.1.1\nTắt proxy: Settings → Network → Proxy → Off\n\nLưu ý: Proxy tự bật là dấu hiệu malware.'],
+      ['SMB Share LAN không truy cập','Chia sẻ file mạng lỗi','Nguyên nhân: Network Discovery tắt, SMB1 bị tắt, Firewall.\n\nCách sửa:\n1. Network → Advanced Sharing → Turn on network discovery\n2. Windows Features → SMB 1.0 → bật nếu cần máy cũ\n3. Firewall → Allow → File and Printer Sharing\n4. Workgroup giống nhau\n5. Credentials Manager → xóa credential cũ'],
+      ['Ping cao lag khi chơi game','Latency cao dù băng thông ổn','Nguyên nhân: WiFi nhiễu, Windows Update chiếm băng thông.\n\nCách sửa:\n1. Kết nối cáp LAN thay WiFi\n2. Tắt Windows Update giờ chơi Metered connection\n3. Router → QoS → ưu tiên gaming\n4. netsh int tcp set global autotuninglevel=normal\n\nLưu ý: Ping phụ thuộc khoảng cách server.'],
+    ],
+    "\ud83d\udee1\ufe0f B\u1ea3o M\u1eadt & Virus":[
+      ['Ransomware mã hóa file','File bị mã hóa extension .locked','Nguyên nhân: Phishing email, RDP brute force, USB độc hại.\n\nXử lý khẩn cấp:\n1. Ngắt mạng NGAY để ngăn lan rộng\n2. KHÔNG trả tiền\n3. Kiểm tra nomoreransom.org có thể có decryptor free\n4. Cô lập máy\n5. Format + cài lại Windows\n6. Restore từ offline backup\n\nLưu ý: Backup offline là bảo vệ tốt nhất.'],
+      ['Malware cài phần mềm quảng cáo','Phần mềm lạ xuất hiện, browser đổi','Nguyên nhân: PUP theo crack, adware từ web lạ.\n\nCách sửa:\n1. Malwarebytes free scan\n2. AdwCleaner chuyên diệt adware\n3. Gỡ phần mềm lạ trong Apps\n4. Chrome: Extensions → xóa lạ → Reset browser\n5. Kiểm tra Scheduled Tasks\n\nLưu ý: Sau dọn: đổi mật khẩu email và ngân hàng.'],
+      ['Windows Defender tự tắt','Antivirus không bật lại được','Nguyên nhân: Malware tắt Defender, registry sửa.\n\nCách sửa:\n1. Windows Security → Real-time protection: ON\n2. Greyed out: gpedit.msc → Anti-Virus → Not Configured\n3. Registry: DisableAntiSpyware = 0\n4. Kaspersky Rescue Disk scan offline\n\nLưu ý: Defender bị tắt = đang nhiễm malware.'],
+    ],
+    "\ud83d\udccb Office & Ph\u1ea7n M\u1ec1m":[
+      ['Office lỗi 0x803F7001 Unlicensed','Office báo unlicensed product','Nguyên nhân: License hết hạn, log out account.\n\nCách sửa:\n1. File → Account → Sign In Microsoft 365\n2. Control Panel → Office → Quick Repair\n3. CMD Admin:\ncd C:\\Program Files\\Microsoft Office\\Office16\ncscript ospp.vbs /dstatus\ncscript ospp.vbs /act\n\nLưu ý: Sinh viên có Microsoft 365 Education miễn phí qua email trường.'],
+      ['Chrome RAM nhiều 2-4GB','Google Chrome chiếm RAM','Nguyên nhân: Nhiều tab, extension nặng.\n\nCách sửa:\n1. Chrome → Settings → Memory Saver → bật\n2. Gỡ extension không dùng\n3. Settings → System → tắt background apps\n4. Dùng Edge ít RAM hơn Chrome\n\nLưu ý: Mỗi tab Chrome = 1 process riêng.'],
+      ['Game thiếu DLL không chạy','Missing MSVCP140.dll lỗi','Nguyên nhân: Visual C++ chưa cài, DirectX thiếu.\n\nCách sửa:\n1. Tải Visual C++ Redistributable 2015-2022 x86+x64\n2. Tải DirectX End-User Runtime\n3. Steam → Verify game files\n\nLưu ý: Cài cả x86 và x64 dù máy 64-bit.'],
+      ['Outlook không gửi nhận mail','Email lỗi không về không gửi','Nguyên nhân: SSL TLS port sai, password thay đổi.\n\nCách sửa:\n1. Account Settings → SMTP port 587 TLS hoặc 465 SSL\n2. Gmail: App Password thay Less Secure\n3. Tắt scan email antivirus\n4. New Outlook Profile'],
+    ],
+  },
+  "macos":{
+    "\ud83d\udd04 H\u1ec7 Th\u1ed1ng & Boot":[
+      ['Kernel Panic macOS crash','Màn xám tối yêu cầu restart','Nguyên nhân: Kext lỗi, RAM lỗi, SSD hỏng.\n\nCách sửa:\n1. Note tên kext trong báo lỗi\n2. Boot Safe Mode: Intel = Shift khi boot; M1 M2 = giữ Power → Options\n3. Gỡ kext extension nghi ngờ\n4. Disk Utility → First Aid\n5. Reset SMC Intel: Shift+Ctrl+Opt+Power 10s\n\nLog: /Library/Logs/DiagnosticReports/'],
+      ['Spinning Beachball treo mãi','Con trỏ cầu vồng không dừng','Nguyên nhân: CPU RAM 100%, app treo, SSD chậm.\n\nCách sửa:\n1. Cmd+Opt+Esc → Force Quit app treo\n2. Activity Monitor → CPU Memory → kill process\n3. Disk Utility → First Aid\n4. Boot Safe Mode kiểm tra extension'],
+      ['App is damaged and cannot be opened','macOS báo ứng dụng bị hỏng','Nguyên nhân: Quarantine attribute từ download.\n\nCách sửa:\n1. Terminal: xattr -cr /Applications/TenApp.app\n2. System Settings → Privacy → Security → Open Anyway\n3. Ctrl+click app → Open\n\nLưu ý: Quarantine flag tự gán cho mọi file download.'],
+      ['Gatekeeper chặn Unknown Developer','Cannot open developer unverified','Nguyên nhân: App không có Apple certificate.\n\nCách sửa:\n1. System Settings → Privacy & Security → Open Anyway\n2. Ctrl+click → Open bypass 1 lần\n3. Terminal: spctl --add /path/to/app'],
+      ['Rosetta 2 app không chạy M1 M2','App báo không tương thích Apple Silicon','Nguyên nhân: Rosetta chưa cài.\n\nCách sửa:\n1. Terminal: softwareupdate --install-rosetta --agree-to-license\n2. Finder → app → Get Info → Open using Rosetta\n3. Kiểm tra isapplesiliconready.com'],
+    ],
+    "\u26a1 Hi\u1ec7u N\u0103ng & Nhi\u1ec7t":[
+      ['Fan quạt Mac full speed liên tục','Quạt ồn không dừng','Nguyên nhân: CPU nóng, SMC lỗi, paste nhiệt cũ.\n\nCách sửa:\n1. Activity Monitor → CPU sort → kill process chiếm nhiều\n2. Reset SMC: Shift+Ctrl+Opt+Power 10s Intel\n3. Macs Fan Control theo dõi nhiệt\n4. Thổi sạch bụi khe thông khí\n5. Thay paste nhiệt Mac trên 3 năm\n\nLưu ý: M1 M2 ít fan, nếu ồn kiểm tra process nền.'],
+      ['kernel_task 100-300% CPU','kernel_task chiếm CPU cao','Nguyên nhân: macOS tăng tải kernel_task để giảm nhiệt, đây là bảo vệ không phải lỗi.\n\nCách sửa:\n1. Tìm process thật sự gây nóng\n2. Ngắt thiết bị USB-C Thunderbolt\n3. Đặt Mac nơi thoáng\n4. Giảm tab trình duyệt\n5. Reset SMC\n\nLưu ý: kernel_task cao = CPU nóng, không phải nguyên nhân.'],
+      ['Spotlight mdworker chiếm CPU','mds mdworker tốn tài nguyên','Nguyên nhân: Spotlight đang index sau thêm file.\n\nCách sửa:\n1. Chờ indexing xong vài giờ\n2. Siri & Spotlight → Privacy → thêm folder không cần\n3. Terminal: sudo mdutil -i off\n4. sudo mdutil -E / để reindex hoàn toàn'],
+    ],
+    "\ud83d\udd17 iCloud & Ecosystem":[
+      ['Handoff không chuyển task','Continuity không hoạt động','Nguyên nhân: Khác Apple ID, Bluetooth tắt.\n\nCách sửa:\n1. Cả hai đăng nhập cùng Apple ID\n2. Bật Bluetooth + WiFi cả hai\n3. Mac: System Settings → AirDrop & Handoff → Handoff ON\n4. iPhone: Settings → General → AirPlay & Handoff → ON\n5. Đặt gần nhau'],
+      ['Time Machine backup thất bại','Time Machine lỗi không backup','Nguyên nhân: Ổ đầy, filesystem lỗi.\n\nCách sửa:\n1. Disk Utility → ổ TM → First Aid\n2. Xóa backup cũ nhất\n3. Đổi backup disk → chọn lại ổ\n4. Format ổ TM → backup mới\n\nLưu ý: Ổ TM nên gấp đôi dung lượng Mac.'],
+    ],
+    "\ud83d\udccb Terminal & Dev":[
+      ['Homebrew brew install thất bại','brew không cài được package','Nguyên nhân: Homebrew cũ, Command Line Tools cũ.\n\nCách sửa:\n1. brew update && brew upgrade\n2. xcode-select --install\n3. brew doctor\n4. brew cleanup\n5. sudo chown -R $(whoami) /usr/local/\n\nLưu ý: M1 M2 Homebrew ở /opt/homebrew'],
+      ['Python Node version conflict','Nhiều version Python Node xung đột','Nguyên nhân: System Python vs Homebrew vs pyenv.\n\nCách sửa:\n1. pyenv cho Python: brew install pyenv\n2. nvm cho Node: brew install nvm\n3. Thêm vào .zshrc: export PYENV_ROOT=$HOME/.pyenv\n4. Không dùng sudo pip install\n\nLưu ý: Không sửa system Python /usr/bin/python3'],
+    ],
+  },
+  "printer":{
+    "\ud83d\udda8\ufe0f M\u00e1y In & Scanner":[
+      ['Máy in offline dù đã bật','Printer không in được báo offline','Nguyên nhân: Print Spooler treo, queue kẹt, IP thay đổi.\n\nWindows - CMD Admin:\nnet stop spooler\ndel /Q /F /S "%systemroot%\\System32\\spool\\PRINTERS\\*.*"\nnet start spooler\n\nXóa máy in rồi thêm lại bằng IP tĩnh.\n\nmacOS: System Preferences → Printers → xóa → thêm lại.\n\nLưu ý: Gán IP tĩnh cho máy in tránh IP thay đổi.'],
+      ['Phông tiếng Việt in bị lỗi','Văn bản VN in ra sai dấu','Nguyên nhân: Font không embed, mã hóa sai.\n\nCách sửa:\n1. Word: Options → Save → Embed fonts\n2. Xuất PDF rồi in từ PDF\n3. Adobe Reader → Print → Print as image\n4. Dùng font Unicode Times New Roman Arial thay .VnTime\n\nLưu ý: Font .Vn cũ TCVN3 in lỗi, dùng Unicode UTF-8.'],
+      ['Kẹt giấy liên tục Paper Jam','Jam error dù không có giấy kẹt','Nguyên nhân: Giấy vụn, cảm biến bẩn, roller mòn.\n\nCách sửa:\n1. Tắt máy, mở tất cả nắp, kiểm tra kỹ\n2. Rút giấy theo chiều máy kéo, không giật\n3. Lau roller bằng khăn ẩm\n4. Dùng giấy đúng chuẩn 80gsm A4\n\nLưu ý: Giấy ẩm hoặc kém chất lượng gây jam liên tục.'],
+      ['Bản in có sọc trắng mực không đều','Print head tắc mực không đều','Nguyên nhân: Print head tắc, mực gần hết.\n\nCách sửa:\n1. Printer Maintenance → Nozzle Check\n2. Head Cleaning 2-3 lần\n3. Head Alignment\n4. Tháo cartridge rồi lắp lại chặt\n\nLưu ý: In test page 1 tuần lần để tránh head tắc.'],
+      ['Canon PIXMA lỗi 5B00','Ink absorber full error Canon','Nguyên nhân: Gioăng mực thải đầy.\n\nCách sửa:\n1. Tải Canon Service Tool free\n2. Kết nối máy in\n3. Ink Absorber Counter → Reset\n4. Nếu thật sự đầy: thay miếng thấm\n\nLưu ý: Reset counter chỉ tạm thời.'],
+      ['Epson L-series đèn đỏ lỗi','Epson L3110 L3210 L3250 báo lỗi','Nguyên nhân: Waste ink pad đầy, giấy kẹt, hết mực.\n\nCách sửa:\n1. Tải Epson Adjustment Program có bản free\n2. Waste ink pad counter → Reset\n3. Kiểm tra giấy kẹt\n4. Đổ mực nếu hết\n\nLưu ý: Epson L-series phụ tùng rẻ, nhiều thợ biết sửa tại VN.'],
+      ['HP printer lỗi mực giả Non-HP','HP từ chối mực thay thế','Nguyên nhân: HP firmware chặn mực không phải HP.\n\nCách sửa:\n1. Màn hình máy in → OK hoặc Accept để tiếp tục\n2. Tắt firmware update tự động\n3. Rollback firmware cũ qua HP website\n4. Một số mực thay thế có chip mới tương thích\n\nLưu ý: HP Instant Ink lock mực nếu hủy subscription.'],
+      ['Scanner không kết nối máy tính','Máy scan không nhận','Nguyên nhân: Driver TWAIN WIA chưa cài.\n\nCách sửa:\n1. Tải driver scan riêng thường khác driver in\n2. Windows Fax and Scan → New Scan → check list\n3. Printers & Scanners → Add device\n4. Services → Windows Image Acquisition → Restart\n\nLưu ý: Dùng app scan của nhà sản xuất tốt hơn built-in.'],
+      ['Máy in mạng LAN không tìm thấy','Network printer không nhận trên mạng','Nguyên nhân: IP thay đổi, firewall chặn.\n\nCách sửa:\n1. In trang cấu hình mạng từ máy in\n2. Vào IP máy in qua browser → đặt IP tĩnh\n3. Windows: Add printer → The printer that I want isn\'t listed → Add by IP\n4. Tắt firewall tạm rồi thử add'],
+    ],
+  },
+  "network":{
+    "\ud83d\udce1 Router & M\u1ea1ng Nh\u00e0":[
+      ['Router WiFi phủ sóng yếu','Sóng không tới phòng xa','Nguyên nhân: Vị trí sai, tường dày, nhiễu kênh.\n\nCách sửa:\n1. Đặt router trung tâm nhà, cao, thoáng\n2. Tránh lò vi sóng và tủ lạnh\n3. WiFi Analyzer → chọn kênh ít nhiễu\n4. Kênh 5GHz: 36, 40, 44, 48\n5. Mua thêm WiFi Extender hoặc Mesh node\n\nLưu ý: 2.4GHz xuyên tường tốt hơn 5GHz nhưng chậm hơn.'],
+      ['Internet chậm hơn gói đăng ký','Speedtest thấp dù gói cao','Nguyên nhân: Cáp kém, modem cũ, giờ cao điểm.\n\nCách sửa:\n1. Test bằng cáp LAN trực tiếp, nếu vẫn chậm = ISP lỗi\n2. Restart modem rút điện 30s\n3. Kiểm tra cáp LAN Cat5e hoặc Cat6\n4. Gọi VNPT Viettel yêu cầu kiểm tra đường dây\n5. DNS → 1.1.1.1 + 8.8.8.8\n\nLưu ý: Speedtest server gần nhất cho kết quả cao nhất.'],
+      ['Web bị chặn không truy cập','Một số website không mở','Nguyên nhân: ISP filter, DNS chặn.\n\nCách sửa:\n1. Đổi DNS: 1.1.1.1 Cloudflare hoặc 8.8.8.8\n2. DNS over HTTPS trong browser\n3. Cloudflare 1.1.1.1 app free\n4. VPN: Proton Free hoặc Windscribe free tier\n\nLưu ý: ISP VN hay chặn DNS, đổi DNS thường fix.'],
+      ['Router bị hack DNS thay đổi','DNS router đổi sang IP lạ','Nguyên nhân: Firmware lỗi bảo mật, password mặc định.\n\nCách sửa:\n1. Đổi mật khẩu Admin router ngay\n2. LAN Settings → DNS → 8.8.8.8 thủ công\n3. Update firmware router\n4. Tắt Remote Management và WPS\n5. Factory reset router'],
+      ['WiFi chậm dù cáp LAN ổn','WiFi 5GHz vẫn chậm hơn LAN','Nguyên nhân: Nhiễu kênh, khoảng cách, driver WiFi.\n\nCách sửa:\n1. Dùng WiFi 5GHz\n2. Update driver WiFi adapter\n3. Router: Mode 802.11ax WiFi 6\n4. QoS Router ưu tiên thiết bị\n5. Nâng cấp router WiFi 6\n\nLưu ý: WiFi 6 tốt hơn đáng kể khi nhiều thiết bị.'],
+      ['Mất kết nối WiFi liên tục','WiFi ngắt kết nối thường xuyên','Nguyên nhân: Driver, power saving, channel conflict.\n\nCách sửa:\n1. Device Manager → WiFi → Properties → Power Management → bỏ allow sleep\n2. Đổi kênh WiFi router\n3. Update driver WiFi\n4. Tắt WiFi Sense Windows\n\nLưu ý: Chỉ 1 thiết bị gặp = driver; nhiều thiết bị = router.'],
+    ],
+  },
+  "hardware":{
+    "\ud83d\udd27 Ph\u1ea7n C\u1ee9ng Chung":[
+      ['Máy tính không lên nguồn','Nhấn nút Power không phản hồi','Nguyên nhân: PSU hỏng, capacitor lỗi, short circuit.\n\nCách sửa:\n1. Kiểm tra công tắc ổ điện và dây nguồn\n2. Tháo hết phần cứng ngoại trừ CPU + 1 RAM + PSU\n3. Test PSU bằng paperclip test nối PS_ON với GND\n4. Kiểm tra capacitor phồng trên mainboard\n5. Thử PSU khác\n\nLưu ý: Capacitor phồng trên mainboard = thay mainboard hoặc hàn capacitor.'],
+      ['PC POST lỗi không vào BIOS','Máy POST error không boot','Nguyên nhân: RAM lỏng, GPU lỏng, CMOS battery hết.\n\nCách sửa:\n1. Tháo cắm lại RAM\n2. Xóa CMOS: tháo pin CR2032 30s\n3. Test từng thanh RAM\n4. Tháo cắm lại GPU\n5. Test với CPU onboard graphics\n\nLưu ý: Beep codes xác định lỗi, 1 beep dài 2 ngắn = RAM lỗi.'],
+      ['Máy tính tự tắt đột ngột','Shutdown tự động không báo','Nguyên nhân: CPU quá nhiệt, PSU yếu, RAM lỗi.\n\nCách sửa:\n1. HWiNFO64 → CPU temp trên 95 độ C khi idle = tản nhiệt lỗi\n2. Thay paste nhiệt CPU\n3. Vệ sinh bụi toàn bộ\n4. MemTest86 kiểm tra RAM\n5. Đo công suất PSU thực tế\n\nLưu ý: CPU throttle trước khi shutdown, tắt đột ngột = PSU hoặc nhiệt.'],
+      ['RAM không nhận đủ dung lượng','Máy nhận ít hơn RAM cài','Nguyên nhân: RAM không đúng khe, BIOS config, RAM hỏng.\n\nCách sửa:\n1. Cắm RAM đúng khe thường A2+B2 cho dual channel\n2. BIOS → detect RAM\n3. Test từng thanh riêng\n\nLưu ý: Windows Home 32-bit chỉ nhận 4GB.'],
+      ['Ổ cứng HDD tiếng kêu lạ','HDD click grind noise','Nguyên nhân: HDD bắt đầu hỏng bad sector, motor lỗi.\n\nCách sửa:\n1. Backup data NGAY vì ổ sắp hỏng\n2. CrystalDiskInfo → kiểm tra SMART Caution Bad = thay\n3. chkdsk /r fix bad sector\n4. Thay ổ mới\n\nLưu ý: Click of death = ổ hỏng, không sửa được, chỉ backup.'],
+      ['SSD M.2 không nhận trong BIOS','Ổ NVMe không hiện trong BIOS','Nguyên nhân: Slot M.2 tắt, bifurcation, form factor sai.\n\nCách sửa:\n1. BIOS → Storage → M.2 slot → Enable\n2. Kiểm tra M.2 là PCIe hay SATA\n3. Cắm lại chặt, vặn ốc cố định\n4. Nếu slot PCIe shared với GPU slot: tắt GPU slot\n5. Update BIOS\n\nLưu ý: M.2 Key M hỗ trợ PCIe; Key B hỗ trợ SATA.'],
+      ['CPU nhiệt độ cao quá mức','Temperature CPU trên 95 độ C liên tục','Nguyên nhân: Paste nhiệt khô, tản nhiệt bụi, case thông gió kém.\n\nCách sửa:\n1. Vệ sinh bụi toàn bộ case và tản nhiệt\n2. Thay paste nhiệt CPU dùng Arctic MX-4\n3. Kiểm tra quạt tản nhiệt còn quay\n4. Case: thêm quạt intake exhaust\n5. Laptop: thêm đế tản nhiệt\n\nLưu ý: Intel 13th 14th gen thường 100 độ C khi boost là bình thường.'],
+    ],
+  },
+};
+
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+var GEMINI_KEY = (function(){
+  try { return localStorage.getItem('tfg_key') || 'AIzaSyAhlg7nrjEoX60QbH4vT_0COSWALWWboS0'; }
+  catch(e) { return 'AIzaSyAhlg7nrjEoX60QbH4vT_0COSWALWWboS0'; }
+})();
+
+var PREFERRED_MODELS = [
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b',
+  'gemini-1.5-pro',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-pro',
+  'gemini-1.0-pro'
+];
+var MODELS = PREFERRED_MODELS.slice();
+var lastModelIdx = 0;
+
+async function detectModels() {
+  try {
+    var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + GEMINI_KEY + '&pageSize=50');
+    if (!res.ok) { console.log('detectModels HTTP', res.status); return; }
+    var data = await res.json();
+    if (!data.models) return;
+    var available = data.models
+      .filter(function(m) { return m.supportedGenerationMethods && m.supportedGenerationMethods.indexOf('generateContent') >= 0; })
+      .map(function(m) { return m.name.replace('models/', ''); });
+    var sorted = PREFERRED_MODELS.filter(function(m) { return available.indexOf(m) >= 0; });
+    available.forEach(function(m) {
+      if (PREFERRED_MODELS.indexOf(m) < 0 && (m.indexOf('flash') >= 0 || m.indexOf('pro') >= 0)) sorted.push(m);
+    });
+    if (sorted.length > 0) { MODELS = sorted; console.log('AI models:', MODELS.join(', ')); }
+    else console.log('All available:', available.join(', '));
+  } catch(e) { console.log('detectModels err:', e.message); }
+}
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+var curP = 'android', curCat = null, curQ = '', curName = '', curSol = '';
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  detectModels(); // auto-detect available Gemini models
+  var allTotal = 0;
+  Object.keys(DB).forEach(function(p) {
+    var n = Object.values(DB[p]).reduce(function(s,e){return s+e.length;},0);
+    allTotal += n;
+    var el = document.getElementById('cnt-'+p);
+    if (el) el.textContent = n;
+  });
+  var allEl = document.getElementById('cnt-all');
+  if (allEl) allEl.textContent = allTotal;
+  renderSidebar();
+  renderList();
+});
+
+// ─── PLATFORM ──────────────────────────────────────────────────────────────
+function switchPlatform(el) {
+  document.querySelectorAll('.ptab').forEach(function(x){x.classList.remove('active');});
+  el.classList.add('active');
+  curP = el.dataset.p;
+  curCat = null; curQ = '';
+  document.getElementById('sInp').value = '';
+  closePanel();
+  renderSidebar();
+  renderList();
+}
+
+// ─── SIDEBAR ───────────────────────────────────────────────────────────────
+function renderSidebar() {
+  var cats;
+  if (curP === 'all') {
+    var seen = {};
+    cats = [];
+    Object.values(DB).forEach(function(d){
+      Object.keys(d).forEach(function(c){ if(!seen[c]){seen[c]=1;cats.push(c);} });
+    });
+  } else {
+    cats = Object.keys(DB[curP] || {});
+  }
+  var totalAll = getErrs(curP, null).length;
+  var html = '<div class="cat-item'+(curCat?'':' active')+'" onclick="selCat(null)">'
+    +'<span class="ci-em">📋</span><span class="ci-lbl">Tất cả</span>'
+    +'<span class="ci-n">'+totalAll+'</span></div>';
+  cats.forEach(function(c) {
+    var n = curQ ? '' : getErrs(curP, c).length;
+    var parts = c.split(' ');
+    var em = parts[0];
+    var lbl = parts.slice(1).join(' ');
+    var act = curCat === c ? ' active' : '';
+    html += '<div class="cat-item'+act+'" onclick="selCat('+JSON.stringify(c)+')" title="'+c+'">'
+      +'<span class="ci-em">'+em+'</span>'
+      +'<span class="ci-lbl">'+lbl+'</span>'
+      +'<span class="ci-n">'+(n||'')+'</span></div>';
+  });
+  document.getElementById('sidebar').innerHTML = html;
+}
+
+function selCat(c) {
+  curCat = c;
+  renderSidebar();
+  renderList();
+}
+
+// ─── GET ERRORS ────────────────────────────────────────────────────────────
+function getErrs(p, cat) {
+  if (curQ) {
+    var q = curQ.toLowerCase();
+    var all = [];
+    Object.values(DB).forEach(function(d){
+      Object.values(d).forEach(function(arr){ all = all.concat(arr); });
+    });
+    return all.filter(function(e){ return e[0].toLowerCase().indexOf(q)>=0 || e[1].toLowerCase().indexOf(q)>=0; });
+  }
+  if (p === 'all') {
+    var all = [];
+    Object.values(DB).forEach(function(d){ Object.values(d).forEach(function(a){ all=all.concat(a); }); });
+    return all;
+  }
+  if (cat) return (DB[p] && DB[p][cat]) ? DB[p][cat] : [];
+  var all = [];
+  Object.values(DB[p] || {}).forEach(function(a){ all=all.concat(a); });
+  return all;
+}
+
+function getCatFor(name) {
+  var found = '';
+  Object.values(DB).forEach(function(cats){
+    Object.keys(cats).forEach(function(c){
+      cats[c].forEach(function(e){ if(e[0]===name) found=c; });
+    });
+  });
+  return found;
+}
+
+// ─── RENDER LIST ───────────────────────────────────────────────────────────
+function renderList() {
+  var errs = getErrs(curP, curCat);
+  var sortVal = document.getElementById('sortSel').value;
+  if (sortVal === 'az') {
+    errs = errs.slice().sort(function(a,b){ return a[0].localeCompare(b[0],'vi'); });
+  }
+  var q = document.getElementById('sInp').value;
+  var countTxt = errs.length + ' lỗi' + (curQ ? ' · tìm "'+q+'"' : '') + (curCat ? ' · '+curCat : '');
+  document.getElementById('listCount').textContent = countTxt;
+  if (!errs.length) {
+    document.getElementById('errList').innerHTML =
+      '<div class="empty"><div class="ei">🔍</div>'
+      +'<p>Không tìm thấy trong database.<br>'
+      +'<button class="sol-ai-btn" style="margin-top:.5rem" onclick="askAI()">✦ Hỏi Gemini AI ngay</button></p></div>';
+    return;
+  }
+  var html = '';
+  errs.forEach(function(e, i) {
+    var delay = Math.min(i,25)*0.022;
+    html += '<div class="err-item" onclick="showSol(this,'+JSON.stringify(e[0])+','+JSON.stringify(e[1])+','+JSON.stringify(e[2])+')"'
+      +' style="animation-delay:'+delay+'s">'
+      +'<span class="err-ico">'+ico(e[0])+'</span>'
+      +'<div class="err-body">'
+      +'<span class="err-name">'+esc(e[0])+'</span>'
+      +'<span class="err-desc">'+esc(e[1])+'</span>'
+      +'</div><span class="err-arr">›</span></div>';
+  });
+  document.getElementById('errList').innerHTML = html;
+}
+
+// ─── SHOW SOLUTION ─────────────────────────────────────────────────────────
+function showSol(el, name, desc, sol) {
+  document.querySelectorAll('.err-item').forEach(function(x){x.classList.remove('active');});
+  el.classList.add('active');
+  curName = name;
+  curSol = sol;
+  document.getElementById('sIcon').textContent = ico(name);
+  document.getElementById('sTitle').textContent = name;
+  document.getElementById('sMeta').textContent = curCat || getCatFor(name);
+  setTag('offline','Offline DB');
+  document.getElementById('sContent').innerHTML = mdRender(sol);
+  document.getElementById('sAiBtn').style.display = '';
+  document.getElementById('sAiBtn').textContent = '✦ Hỏi Gemini AI thêm';
+  document.getElementById('sAiBtn').onclick = askAIFor;
+  document.getElementById('solPanel').classList.add('show');
+  document.getElementById('solPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closePanel() {
+  document.getElementById('solPanel').classList.remove('show');
+  document.querySelectorAll('.err-item').forEach(function(x){x.classList.remove('active');});
+}
+
+function copySol() {
+  if (!curSol) return;
+  navigator.clipboard.writeText(curName + '\n\n' + curSol)
+    .then(function(){ toast('✅ Đã copy giải pháp!'); });
+}
+
+// ─── GEMINI AI ─────────────────────────────────────────────────────────────
+function geminiURL(model) {
+  return 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_KEY;
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+async function callModel(model, sysprompt, prompt) {
+  var reqBody = JSON.stringify({
+    system_instruction: {parts:[{text: sysprompt}]},
+    contents: [{role:'user', parts:[{text: prompt}]}],
+    generationConfig: {maxOutputTokens: 1024, temperature: 0.3}
+  });
+  var res;
+  try {
+    res = await fetch(geminiURL(model), {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: reqBody
+    });
+  } catch(netErr) {
+    throw {status: 0, message: 'Lỗi mạng: ' + netErr.message, skip: true};
+  }
+  var txt = await res.text();
+  if (!res.ok) {
+    var errObj = {status: res.status, message: 'HTTP ' + res.status, skip: false};
+    // 404=model không tồn tại, 429=quota, 400=bad request -> đều skip sang model khác
+    if (res.status === 404 || res.status === 429 || res.status === 400 || res.status === 403) {
+      errObj.skip = true;
+    }
+    try {
+      var j = JSON.parse(txt);
+      if (j.error) {
+        errObj.message = j.error.message ? j.error.message.substring(0,150) : errObj.message;
+        var ri = (j.error.details||[]).find(function(d){ return d['@type']&&d['@type'].includes('RetryInfo'); });
+        if (ri && ri.retryDelay) errObj.retryDelay = parseInt(ri.retryDelay) * 1000;
+      }
+    } catch(x) {}
+    throw errObj;
+  }
+  var data;
+  try { data = JSON.parse(txt); } catch(x) { throw {status:200, message:'Parse error', skip:true}; }
+  var text = data.candidates && data.candidates[0]
+    && data.candidates[0].content && data.candidates[0].content.parts
+    && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+  if (!text) throw {status:200, message:'Empty response', skip:true};
+  return text;
+}
+
+async function callGeminiCascade(sysprompt, prompt, onStatus) {
+  var order = MODELS.slice(lastModelIdx).concat(MODELS.slice(0, lastModelIdx));
+  var lastErr = null;
+  for (var i = 0; i < order.length; i++) {
+    var model = order[i];
+    onStatus('Thử ' + model + ' (' + (i+1) + '/' + order.length + ')...');
+    try {
+      var text = await callModel(model, sysprompt, prompt);
+      lastModelIdx = MODELS.indexOf(model);
+      return {text: text, model: model};
+    } catch(e) {
+      lastErr = e;
+      if (e.skip) {
+        // Nếu có retryDelay ngắn thì đợi, rồi thử model tiếp
+        if (e.retryDelay && e.retryDelay < 4000 && i < order.length - 1) {
+          onStatus('Đợi ' + Math.ceil(e.retryDelay/1000) + 's rồi thử tiếp...');
+          await sleep(e.retryDelay);
+        }
+        continue; // thử model tiếp
+      }
+      // Lỗi không skip được -> dừng
+      throw e;
+    }
+  }
+  // Hết tất cả model
+  throw {status: lastErr ? lastErr.status : 0, message: 'Tất cả model đều không dùng được. Lỗi cuối: ' + (lastErr&&lastErr.message||'unknown'), isAllFailed: true};
+}
+
+async function callGemini(displayName, prompt) {
+  var panel = document.getElementById('solPanel');
+  curName = displayName;
+  document.getElementById('sIcon').textContent = '✦';
+  document.getElementById('sTitle').textContent = displayName;
+  setTag('loading','⏳ Đang kết nối AI...');
+  document.getElementById('sContent').innerHTML =
+    '<div class="thinking"><div class="dots"><span></span><span></span><span></span></div>'
+    +'<span id="aiStatus">Đang chọn model...</span></div>';
+  document.getElementById('sAiBtn').style.display = 'none';
+  panel.classList.add('show');
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  var SYS = 'Ban la ky thuat vien IT 15 nam kinh nghiem sua laptop PC Android iPhone macOS may in. Tra loi tieng Viet, ngan gon. Format: ## Nguyen Nhan\n## Cach Sua\n## Luu Y';
+
+  function setStatus(msg) {
+    var el = document.getElementById('aiStatus');
+    if (el) el.textContent = msg;
+  }
+
+  try {
+    var result = await callGeminiCascade(SYS, prompt, setStatus);
+    curSol = result.text;
+    var mLabel = result.model.includes('pro') ? '✦ Gemini Pro'
+               : result.model.includes('1.5') ? '✦ Gemini 1.5'
+               : '✦ Gemini AI';
+    setTag('ai-tag', mLabel);
+    document.getElementById('sContent').innerHTML = mdRender(result.text);
+    document.getElementById('sAiBtn').style.display = '';
+    document.getElementById('sAiBtn').textContent = '🔄 Hỏi lại';
+    document.getElementById('sAiBtn').onclick = function(){ askAIFor(); };
+  } catch(err) {
+    var isQuota = err.message && (err.message.indexOf('quota') >= 0 || err.message.indexOf('Tất cả') >= 0);
+    var isKeyErr = err.message && (err.message.indexOf('404') >= 0 || err.message.indexOf('403') >= 0 || err.message.indexOf('API key') >= 0);
+    if (isKeyErr && !isQuota) isQuota = true;
+    setTag('err-tag', isQuota ? '⚠ Hết Quota' : '⚠ Lỗi AI');
+    document.getElementById('sContent').innerHTML =
+      '<div style="padding:.9rem">'
+      + '<p style="color:#F97316;font-size:.86rem;font-weight:700;margin-bottom:.5rem">'
+      + (isQuota ? '🔑 API Key hết quota' : '⚠ Không kết nối AI')
+      + '</p>'
+      + '<p style="color:#9CA3AF;font-size:.78rem;margin-bottom:.8rem">'
+      + (isQuota ? 'Tất cả model đều hết quota. Hãy đổi sang key mới.' : ((err.apiMsg || err.message)||''))
+      + '</p>'
+      + '<div style="display:flex;gap:.5rem;flex-wrap:wrap">'
+      + '<button onclick="openKeyModal()" style="padding:7px 14px;background:rgba(124,252,0,.08);border:1px solid rgba(124,252,0,.2);border-radius:7px;color:#7CFC00;font-size:.8rem;cursor:pointer;font-family:inherit">🔑 Đổi API Key</button>'
+      + '<a href="https://aistudio.google.com/app/apikey" target="_blank" style="padding:7px 14px;background:rgba(100,210,255,.06);border:1px solid rgba(100,210,255,.15);border-radius:7px;color:#64D2FF;font-size:.8rem;text-decoration:none">Lấy Key Miễn Phí ↗</a>'
+      + '</div></div>';
+  }
+}
+
+function askAI() {
+  var q = document.getElementById('sInp').value.trim();
+  if (!q) { document.getElementById('sInp').focus(); return; }
+  callGemini(q, q);
+}
+
+function askAIFor() {
+  if (!curName) return;
+  callGemini(curName, curName + '\n\nGiải thích thêm chi tiết, kỹ hơn, các trường hợp đặc biệt, lệnh cụ thể.');
+}
+
+// ─── SEARCH ────────────────────────────────────────────────────────────────
+function onSearch() {
+  curQ = document.getElementById('sInp').value.trim().toLowerCase();
+  if (curQ) {
+    curCat = null;
+    document.querySelectorAll('.ptab').forEach(function(x){
+      x.classList.toggle('active', x.dataset.p === 'all');
+    });
+    curP = 'all';
+    renderSidebar();
+  }
+  renderList();
+}
+
+function onKey(e) {
+  if (e.key === 'Enter') askAI();
+  if (e.key === 'Escape') {
+    document.getElementById('sInp').value = '';
+    curQ = '';
+    renderList();
+  }
+}
+
+function qSearch(q) {
+  document.getElementById('sInp').value = q;
+  curQ = q.toLowerCase();
+  curP = 'all';
+  document.querySelectorAll('.ptab').forEach(function(x){
+    x.classList.toggle('active', x.dataset.p === 'all');
+  });
+  renderSidebar();
+  renderList();
+}
+
+// ─── KEY MODAL ─────────────────────────────────────────────────────────────
+function openKeyModal() {
+  document.getElementById('keyModal').classList.add('open');
+  document.getElementById('keyInp').value = GEMINI_KEY;
+  setTimeout(function(){ document.getElementById('keyInp').focus(); }, 100);
+}
+function closeKeyModal() { document.getElementById('keyModal').classList.remove('open'); }
+function saveKey() {
+  var k = document.getElementById('keyInp').value.trim();
+  if (!k) return;
+  GEMINI_KEY = k;
+  try { localStorage.setItem('tfg_key', k); } catch(e) {}
+  lastModelIdx = 0;
+  closeKeyModal();
+  toast('✅ Đã lưu API Key mới!');
+}
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────
+function setTag(cls, txt) {
+  var t = document.getElementById('sTag');
+  t.className = 'sol-tag ' + cls;
+  t.textContent = txt;
+}
+
+function ico(n) {
+  var l = n.toLowerCase();
+  if (/pin|sạc|battery|charger/.test(l)) return '🔋';
+  if (/màn|screen|display|oled|dead pixel|sọc/.test(l)) return '🖥️';
+  if (/wifi|bluetooth|mạng|internet|sim|4g|5g|nfc|gps|airdrop|hotspot|esim/.test(l)) return '📶';
+  if (/camera|chụp|flash|selfie|portrait/.test(l)) return '📷';
+  if (/âm|loa|micro|sound|audio|tiếng/.test(l)) return '🔊';
+  if (/boot|khởi|treo|brick|fastboot|recovery|dfu|bios|grub|winload|mbr/.test(l)) return '⚙️';
+  if (/bsod|crash|panic|exception|violation|watchdog|tdr/.test(l)) return '💙';
+  if (/virus|malware|ransomware|spyware|rootkit|adware|miner/.test(l)) return '🛡️';
+  if (/update|upgrade|cập nhật/.test(l)) return '🔄';
+  if (/driver|code 43|code 10/.test(l)) return '🔌';
+  if (/ổ cứng|ssd|hdd|disk|storage|sd card|bộ nhớ|partition|emmc|nvme/.test(l)) return '💾';
+  if (/icloud|apple id|activation|facetime|magsafe/.test(l)) return '🍎';
+  if (/app|cài|play store|crash|permission/.test(l)) return '📱';
+  if (/cpu|ram|gpu|nhiệt|nóng|fps|hiệu năng|throttle/.test(l)) return '⚡';
+  if (/bảo mật|mật khẩu|khóa|lock|bitlocker|filevault/.test(l)) return '🔐';
+  if (/office|word|excel|outlook|teams|pdf/.test(l)) return '📋';
+  if (/trung quốc|miui|harmony|huawei|coloros/.test(l)) return '🇨🇳';
+  if (/máy in|printer|scanner|ink|mực|giấy|canon|epson|hp/.test(l)) return '🖨️';
+  if (/router|mạng nhà|internet chậm|dns|dhcp/.test(l)) return '📡';
+  if (/nguồn|psu|capacitor|mainboard|post/.test(l)) return '🔧';
+  return '🔧';
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function mdRender(t) {
+  if (!t) return '';
+  var s = t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
+    .replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  var lines = s.split('\n');
+  var out = [], inList = false;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var listMatch = line.match(/^(\d+\.\s+|[-•]\s+)(.+)$/);
+    if (listMatch) {
+      if (!inList) { out.push('<ul>'); inList = true; }
+      out.push('<li>' + listMatch[2] + '</li>');
+    } else {
+      if (inList) { out.push('</ul>'); inList = false; }
+      if (line.trim()) {
+        if (line.match(/^<[h12]|^<pre|^<\/pre/)) out.push(line);
+        else out.push('<p>' + line + '</p>');
+      }
+    }
+  }
+  if (inList) out.push('</ul>');
+  return out.join('\n');
+}
+
+function toast(m) {
+  var tc = document.getElementById('tc');
+  var el = document.createElement('div');
+  el.className = 'toast success';
+  el.innerHTML = '<span class="toast-dot"></span>' + m;
+  tc.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3000);
+}
+</script>
+</body>
+</html>

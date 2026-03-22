@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1A1A2E" />
+  <title>Script Tool – TechFix Guide</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon">🔧</div> TFG
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Trang Chủ</a></li>
+      <li><a href="diagnostic.html">Chẩn Đoán</a></li>
+      <li><a href="scripts.html" class="active">Scripts</a></li>
+      <li><a href="guides.html">Thư Viện</a></li>
+      <li><a href="btp.html" style="color:var(--primary);">⚡ BTP Tool</a></li>
+    </ul>
+    <div class="nav-hamburger" onclick="toggleNav()"><span></span><span></span><span></span></div>
+  </nav>
+
+  <div class="container guides-header animate-up stagger-1">
+    <span class="overline" style="font-size:0.72rem; font-weight:700; letter-spacing:3px; color:var(--primary); text-transform:uppercase; display:block; margin-bottom:8px;">Automation</span>
+    <h2>Script Tool</h2>
+    <p style="margin-top:0.4rem; max-width:520px;">Bộ script tự động hóa tác vụ sửa lỗi Windows và kiểm tra phần cứng. Tải về và chạy ngay.</p>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="container">
+    <div class="guides-filter-bar animate-up stagger-2">
+      <div class="filter-chip active" onclick="filterScripts('all', this)">🗂 Tất Cả</div>
+      <div class="filter-chip" onclick="filterScripts('.bat', this)">⚙️ .BAT Script</div>
+      <div class="filter-chip" onclick="filterScripts('.py', this)">🐍 Python Script</div>
+    </div>
+  </div>
+
+  <!-- Info banner -->
+  <div class="container">
+    <div class="glass-card animate-up stagger-2" style="padding:1rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:12px;">
+      <span style="font-size:1.4rem;">⚠️</span>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin:0;">
+        <strong style="color:var(--primary);">Lưu ý:</strong> Chạy script với quyền Administrator. Đọc kỹ mô tả trước khi thực thi. Script chỉ hoạt động trên Windows 10/11.
+      </p>
+    </div>
+  </div>
+
+  <!-- Scripts Grid -->
+  <div class="container">
+    <div class="scripts-grid" id="scriptsGrid">
+      <div class="loading-state" style="grid-column:1/-1;">
+        <div class="spinner"></div>
+        <p>Đang tải danh sách script...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Preview Modal -->
+  <div class="modal-overlay" id="scriptModal">
+    <div class="modal-box" style="max-width:640px;">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="scriptModalContent"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Built-in scripts content -->
+  <script>
+    const SCRIPTS_CONTENT = {
+      'windows_cleaner.bat': `@echo off
+title Windows Cleaner — TechFix Guide
+color 0A
+echo ============================================
+echo   Windows Cleaner v1.0 — TechFix Guide
+echo ============================================
+echo.
+echo Dang xoa temp files...
+del /s /q /f "%TEMP%\\*.*" >nul 2>&1
+rd /s /q "%TEMP%" >nul 2>&1
+md "%TEMP%" >nul 2>&1
+echo [OK] Temp files da xoa.
+
+echo Dang xoa Windows Temp...
+del /s /q /f "C:\\Windows\\Temp\\*.*" >nul 2>&1
+echo [OK] Windows Temp da xoa.
+
+echo Dang xoa Prefetch...
+del /s /q /f "C:\\Windows\\Prefetch\\*.*" >nul 2>&1
+echo [OK] Prefetch da xoa.
+
+echo Dang chay Disk Cleanup...
+cleanmgr /sagerun:1 >nul 2>&1
+echo [OK] Disk Cleanup hoan thanh.
+
+echo.
+echo ============================================
+echo   Hoan tat! He thong da duoc don dep.
+echo ============================================
+pause`,
+
+      'battery_check.py': `#!/usr/bin/env python3
+"""
+Battery Health Check — TechFix Guide
+Kiem tra tinh trang pin laptop va xuat bao cao.
+"""
+import subprocess, json, sys
+
+def check_battery():
+    try:
+        import psutil
+        battery = psutil.sensors_battery()
+        if not battery:
+            print("Khong tim thay thong tin pin.")
+            return
+        print("=" * 40)
+        print("  KIEM TRA PIN LAPTOP — TechFix Guide")
+        print("=" * 40)
+        print(f"Pin hien tai  : {battery.percent:.1f}%")
+        print(f"Trang thai    : {'Dang sac' if battery.power_plugged else 'Dang xa'}")
+        if battery.secsleft > 0:
+            h, m = divmod(battery.secsleft // 60, 60)
+            print(f"Thoi gian con : {h}h {m}m")
+        print()
+        # Generate report using Windows powercfg
+        result = subprocess.run(
+            ['powercfg', '/batteryreport', '/output', 'battery_report.html'],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print("[OK] Bao cao pin: battery_report.html")
+        print("=" * 40)
+    except ImportError:
+        print("Can cai: pip install psutil")
+    except Exception as e:
+        print(f"Loi: {e}")
+
+if __name__ == '__main__':
+    check_battery()`,
+
+      'ssd_health.py': `#!/usr/bin/env python3
+"""
+SSD/HDD Health Check — TechFix Guide
+Kiem tra suc khoe o cung qua S.M.A.R.T.
+"""
+import subprocess, sys
+
+def check_disk():
+    print("=" * 44)
+    print("  SSD/HDD HEALTH CHECK — TechFix Guide")
+    print("=" * 44)
+    try:
+        # Try wmic first (Windows)
+        result = subprocess.run(
+            ['wmic', 'diskdrive', 'get', 'Model,Status,Size'],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0:
+            print(result.stdout)
+        # Run chkdsk info
+        drives = ['C:', 'D:', 'E:']
+        for drive in drives:
+            r = subprocess.run(
+                ['chkdsk', drive, '/scan'],
+                capture_output=True, text=True, timeout=30
+            )
+            if 'no problems' in r.stdout.lower() or 'found' in r.stdout.lower():
+                print(f"[{drive}] {r.stdout.strip()[:80]}")
+    except FileNotFoundError:
+        print("Chay tren Windows de co day du chuc nang.")
+    except Exception as e:
+        print(f"Loi: {e}")
+    print("=" * 44)
+
+if __name__ == '__main__':
+    check_disk()`,
+
+      'remove_bloatware.bat': `@echo off
+title Remove Bloatware — TechFix Guide
+color 0A
+echo ============================================
+echo  Remove Windows Bloatware v1.0 — TFG
+echo ============================================
+echo.
+echo Xoa Xbox apps...
+powershell -Command "Get-AppxPackage *xbox* | Remove-AppxPackage" >nul 2>&1
+echo [OK] Xbox removed.
+echo Xoa Cortana...
+powershell -Command "Get-AppxPackage *cortana* | Remove-AppxPackage" >nul 2>&1
+echo [OK] Cortana removed.
+echo Xoa 3D Viewer...
+powershell -Command "Get-AppxPackage *3dviewer* | Remove-AppxPackage" >nul 2>&1
+echo [OK] 3D Viewer removed.
+echo Xoa Mixed Reality...
+powershell -Command "Get-AppxPackage *mixedreality* | Remove-AppxPackage" >nul 2>&1
+echo [OK] Mixed Reality removed.
+echo Xoa Solitaire Collection...
+powershell -Command "Get-AppxPackage *solitaire* | Remove-AppxPackage" >nul 2>&1
+echo [OK] Solitaire removed.
+echo.
+echo ============================================
+echo  Hoan tat! Khoi dong lai de ap dung.
+echo ============================================
+pause`,
+
+      'network_reset.bat': `@echo off
+title Network Reset — TechFix Guide
+color 0A
+echo ============================================
+echo   Network Reset v1.0 — TechFix Guide
+echo ============================================
+echo.
+echo Reset TCP/IP stack...
+netsh int ip reset >nul 2>&1
+echo [OK] TCP/IP reset.
+echo Reset Winsock...
+netsh winsock reset >nul 2>&1
+echo [OK] Winsock reset.
+echo Flush DNS...
+ipconfig /flushdns >nul 2>&1
+echo [OK] DNS cache cleared.
+echo Release & renew IP...
+ipconfig /release >nul 2>&1
+ipconfig /renew >nul 2>&1
+echo [OK] IP renewed.
+echo Reset Firewall rules...
+netsh advfirewall reset >nul 2>&1
+echo [OK] Firewall reset.
+echo.
+echo ============================================
+echo   Mang da duoc reset. Vui long khoi dong lai.
+echo ============================================
+pause`,
+    };
+
+    const API = 'http://localhost:8000/api/v1';
+    let allScripts = [];
+
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    function toast(msg, type = 'success') {
+      const tc = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span class="toast-dot"></span>${msg}`;
+      tc.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    async function loadScripts() {
+      try {
+        const data = await fetch(`${API}/scripts`).then(r => r.json());
+        allScripts = data;
+        renderScripts(data);
+      } catch {
+        renderDemoScripts();
+      }
+    }
+
+    function filterScripts(type, el) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      const filtered = type === 'all' ? allScripts : allScripts.filter(s => s.script_type === type);
+      renderScripts(filtered);
+    }
+
+    function renderScripts(scripts) {
+      const grid = document.getElementById('scriptsGrid');
+      if (!scripts.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">📂</div><p>Không có script nào.</p></div>';
+        return;
+      }
+      grid.innerHTML = scripts.map((s, i) => `
+        <div class="glass-card script-card animate-up" style="animation-delay:${i*0.07}s; opacity:0;">
+          <div class="script-card-top">
+            <div class="script-type-icon ${s.script_type === '.bat' ? 'bat' : 'py'}">
+              ${s.script_type}
+            </div>
+            <div style="flex:1;">
+              <h4>${s.script_name}</h4>
+              <p>${s.description || ''}</p>
+            </div>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom: 0.5rem;">
+            🖥 Tương thích: ${s.compatible_os || 'Windows 10, 11'}
+          </div>
+          <div class="script-card-footer">
+            <span class="download-count">⬇ ${s.download_count || 0} lượt tải</span>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn btn-ghost" style="padding:6px 12px; font-size:0.8rem;" onclick="previewScript('${s.file_path}', '${s.script_name}')">👁 Xem</button>
+              <button class="btn btn-primary" style="padding:6px 14px; font-size:0.8rem;" onclick="downloadScript(${s.id}, '${s.script_name}', '${s.file_path}', '${s.script_type}')">⬇ Tải Về</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function previewScript(filePath, name) {
+      const fileName = filePath ? filePath.split('/').pop() : '';
+      const content = SCRIPTS_CONTENT[fileName] || '# Nội dung script sẽ hiển thị ở đây.';
+      document.getElementById('scriptModalContent').innerHTML = `
+        <h3 style="margin-bottom:1rem;">${name}</h3>
+        <pre style="background:rgba(0,0,0,0.4); border-radius:10px; padding:1.2rem; overflow-x:auto; font-family:var(--font-mono); font-size:0.78rem; line-height:1.6; color:var(--cream); white-space:pre-wrap;">${escHtml(content)}</pre>
+      `;
+      document.getElementById('scriptModal').classList.add('open');
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function downloadScript(id, name, filePath, type) {
+      try {
+        await fetch(`${API}/scripts/download/${id}`);
+      } catch {}
+
+      // Download from built-in content
+      const fileName = filePath ? filePath.split('/').pop() : name + type;
+      const content = SCRIPTS_CONTENT[fileName];
+
+      if (content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        a.click(); URL.revokeObjectURL(url);
+        toast(`✅ Đã tải: ${name}`, 'success');
+      } else {
+        toast(`Script ${name} sẽ sớm có mặt!`, 'success');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('scriptModal').classList.remove('open');
+    }
+
+    function renderDemoScripts() {
+      allScripts = [
+        { id:1, script_name:'Windows Cleaner', description:'Dọn file rác, temp, cache hệ thống Windows', file_path:'scripts/windows_cleaner.bat', script_type:'.bat', compatible_os:'Windows 10, 11', download_count:1420 },
+        { id:2, script_name:'Battery Health Check', description:'Kiểm tra tình trạng pin laptop, xuất báo cáo chi tiết', file_path:'scripts/battery_check.py', script_type:'.py', compatible_os:'Windows 10, 11', download_count:876 },
+        { id:3, script_name:'SSD Health Check', description:'Kiểm tra sức khỏe ổ cứng SSD/HDD', file_path:'scripts/ssd_health.py', script_type:'.py', compatible_os:'Windows 10, 11', download_count:654 },
+        { id:4, script_name:'Remove Bloatware', description:'Xóa ứng dụng rác cài sẵn của Windows', file_path:'scripts/remove_bloatware.bat', script_type:'.bat', compatible_os:'Windows 10, 11', download_count:2100 },
+        { id:5, script_name:'Network Reset', description:'Reset cấu hình mạng, xóa cache DNS, Winsock reset', file_path:'scripts/network_reset.bat', script_type:'.bat', compatible_os:'Windows 10, 11', download_count:980 },
+        { id:6, script_name:'Startup Optimizer', description:'Tối ưu chương trình khởi động, giảm thời gian boot', file_path:'scripts/startup_optimizer.py', script_type:'.py', compatible_os:'Windows 10, 11', download_count:543 },
+        { id:7, script_name:'Driver Backup', description:'Sao lưu toàn bộ driver hiện tại trước khi cài lại Windows', file_path:'scripts/driver_backup.bat', script_type:'.bat', compatible_os:'Windows 10, 11', download_count:321 },
+        { id:8, script_name:'RAM Diagnostic', description:'Kiểm tra bộ nhớ RAM, phát hiện lỗi memory', file_path:'scripts/ram_diagnostic.bat', script_type:'.bat', compatible_os:'Windows 10, 11', download_count:445 },
+      ];
+      renderScripts(allScripts);
+    }
+
+    loadScripts();
+  </script>
+</body>
+</html>

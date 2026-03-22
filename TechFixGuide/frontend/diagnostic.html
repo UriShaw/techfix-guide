@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1A1A2E" />
+  <title>Chẩn Đoán Lỗi – TechFix Guide</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon">🔧</div> TFG
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Trang Chủ</a></li>
+      <li><a href="diagnostic.html" class="active">Chẩn Đoán</a></li>
+      <li><a href="guides.html">Thư Viện</a></li>
+      <li><a href="btp.html" style="color:var(--primary);">⚡ Tool Tự Động</a></li>
+    </ul>
+    <div class="nav-hamburger" id="hamburger" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="container" style="padding: 2.5rem 0 0;">
+    <div class="animate-up stagger-1">
+      <span class="overline" style="font-size:0.72rem; font-weight:700; letter-spacing:3px; color:var(--primary); text-transform:uppercase; display:block; margin-bottom:8px;">Công Cụ Chẩn Đoán</span>
+      <h2>Smart Diagnostic Tool</h2>
+      <p style="margin-top: 0.4rem; max-width:500px;">Lọc lỗi theo thiết bị, hệ điều hành và loại lỗi để nhận hướng dẫn sửa lỗi phù hợp nhất.</p>
+    </div>
+  </div>
+
+  <div class="container diagnostic-layout">
+
+    <!-- ── Filter Panel ──────────────────────────────────────── -->
+    <aside class="glass-card filter-panel animate-up stagger-2">
+      <h3>🔍 Bộ Lọc Thông Minh</h3>
+
+      <div class="form-group">
+        <label class="form-label">Thiết Bị</label>
+        <div class="select-wrapper">
+          <select class="form-control" id="selectDevice">
+            <option value="">Tất cả thiết bị</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Hệ Điều Hành</label>
+        <div class="select-wrapper">
+          <select class="form-control" id="selectOS">
+            <option value="">Tất cả hệ điều hành</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Loại Lỗi</label>
+        <div class="select-wrapper">
+          <select class="form-control" id="selectCategory">
+            <option value="">Tất cả loại lỗi</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top: 0.5rem;" onclick="runDiagnostic()">
+        ⚡ Chẩn Đoán
+      </button>
+      <button class="btn btn-ghost" style="width:100%; justify-content:center; margin-top: 0.5rem;" onclick="resetFilters()">
+        ↺ Đặt Lại
+      </button>
+
+      <!-- OCR Section -->
+      <hr style="border: none; border-top: var(--glass-border); margin: 1.5rem 0;" />
+      <h4 style="font-size: 0.9rem; margin-bottom: 0.8rem; color: var(--text-secondary);">📸 Quét Ảnh Lỗi (OCR)</h4>
+      <div class="ocr-zone" id="ocrZone">
+        <input type="file" id="ocrFileInput" accept="image/*" onchange="handleOCRUpload(event)" />
+        <div class="ocr-icon">📷</div>
+        <p style="font-size:0.82rem; color:var(--text-muted);">Kéo thả hoặc nhấn để tải ảnh màn hình lỗi lên. AI sẽ tự động đọc mã lỗi.</p>
+      </div>
+      <div id="ocrPreview" style="display:none; margin-top: 0.8rem; text-align:center;">
+        <img id="ocrPreviewImg" style="max-width:100%; border-radius:8px; border: var(--glass-border);" alt="Preview" />
+        <button class="btn btn-outline" style="width:100%; justify-content:center; margin-top:0.6rem;" onclick="submitOCR()">
+          🤖 Phân Tích OCR
+        </button>
+      </div>
+      <div id="ocrStatus"></div>
+    </aside>
+
+    <!-- ── Results Panel ─────────────────────────────────────── -->
+    <main class="results-panel animate-up stagger-3">
+      <div class="results-header">
+        <h3>Kết Quả Chẩn Đoán</h3>
+        <span class="results-count" id="resultsCount">Chọn bộ lọc và nhấn Chẩn Đoán</span>
+      </div>
+
+      <div id="resultsContainer">
+        <div class="empty-state">
+          <div class="empty-icon">🔭</div>
+          <p>Chưa có kết quả. Hãy chọn thiết bị và loại lỗi để bắt đầu chẩn đoán.</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Guide Modal -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content" id="guideModalContent"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const API = 'http://localhost:8000/api/v1';
+    let ocrFile = null;
+    let allErrors = [];
+
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    function toast(msg, type = 'success') {
+      const tc = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span class="toast-dot"></span>${msg}`;
+      tc.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    // Load dropdowns
+    async function loadLookups() {
+      try {
+        const [devices, osList, categories] = await Promise.all([
+          fetch(`${API}/devices`).then(r => r.json()),
+          fetch(`${API}/os`).then(r => r.json()),
+          fetch(`${API}/categories`).then(r => r.json()),
+        ]);
+
+        const dSel = document.getElementById('selectDevice');
+        devices.forEach(d => {
+          const o = document.createElement('option');
+          o.value = d.device_name; o.textContent = d.device_name;
+          dSel.appendChild(o);
+        });
+        dSel.addEventListener('change', filterOS);
+
+        window._allOS = osList;
+        filterOS();
+
+        const cSel = document.getElementById('selectCategory');
+        categories.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.category_name; o.textContent = c.category_name;
+          cSel.appendChild(o);
+        });
+      } catch (e) {
+        toast('Không thể kết nối server. Đang dùng dữ liệu demo.', 'error');
+        loadDemoData();
+      }
+    }
+
+    function filterOS() {
+      const device = document.getElementById('selectDevice').value;
+      const sel = document.getElementById('selectOS');
+      sel.innerHTML = '<option value="">Tất cả hệ điều hành</option>';
+      const filtered = window._allOS ? window._allOS.filter(o => !device || true) : [];
+      // In real scenario filter by device_id; here just show all
+      (window._allOS || []).forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.os_name; opt.textContent = o.os_name;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function runDiagnostic() {
+      const device   = document.getElementById('selectDevice').value;
+      const os       = document.getElementById('selectOS').value;
+      const category = document.getElementById('selectCategory').value;
+
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Đang chẩn đoán...</p></div>';
+
+      try {
+        const res = await fetch(`${API}/diagnostic`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device, os, category }),
+        });
+        const data = await res.json();
+        allErrors = data.errors || [];
+        renderErrors(allErrors, data.count);
+      } catch {
+        renderDemoErrors();
+      }
+    }
+
+    function renderErrors(errors, count) {
+      const container = document.getElementById('resultsContainer');
+      document.getElementById('resultsCount').textContent =
+        count > 0 ? `Tìm thấy ${count} lỗi` : 'Không tìm thấy lỗi phù hợp';
+
+      if (!errors.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>Không tìm thấy lỗi nào với bộ lọc này. Hãy thử các tiêu chí khác.</p></div>';
+        return;
+      }
+
+      const severityLabel = { critical: 'Nghiêm Trọng', high: 'Cao', medium: 'Trung Bình', low: 'Thấp' };
+      container.innerHTML = errors.map((e, i) => `
+        <div class="glass-card error-card animate-up" style="animation-delay:${i * 0.06}s; opacity:0;">
+          <div class="error-card-header">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+                ${e.error_code ? `<span class="error-code-tag">${e.error_code}</span>` : ''}
+                <span class="badge badge-${e.severity}">${severityLabel[e.severity] || e.severity}</span>
+              </div>
+              <h4>${e.error_name}</h4>
+            </div>
+          </div>
+          <p class="error-desc">${e.description || ''}</p>
+          <div class="error-meta">
+            ${e.device   ? `<span class="badge badge-medium">💻 ${e.device}</span>` : ''}
+            ${e.os       ? `<span class="badge badge-low">🖥 ${e.os}</span>` : ''}
+            ${e.category ? `<span class="badge badge-medium">📂 ${e.category}</span>` : ''}
+          </div>
+          <div class="solution-block" style="margin-top:1rem;">
+            <strong style="color:var(--primary); font-size:0.8rem;">💡 GIẢI PHÁP:</strong><br/>
+            ${e.solution || 'Xem hướng dẫn chi tiết trong thư viện.'}
+          </div>
+          ${e.scripts && e.scripts.length ? `
+          <div class="error-scripts-list">
+            <span style="font-size:0.75rem; color:var(--text-muted); width:100%; display:block; margin-bottom:4px;">🔧 Scripts liên quan:</span>
+            ${e.scripts.map(s => `
+              <a href="scripts.html" class="btn btn-outline" style="padding:5px 12px; font-size:0.78rem;">
+                ${s.script_type === '.bat' ? '⚙️' : '🐍'} ${s.script_name}
+              </a>
+            `).join('')}
+          </div>` : ''}
+          ${e.video_link ? `<div style="margin-top:0.8rem;"><a href="${e.video_link}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:0.82rem;">▶️ Xem Video Hướng Dẫn</a></div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function resetFilters() {
+      document.getElementById('selectDevice').value   = '';
+      document.getElementById('selectOS').value       = '';
+      document.getElementById('selectCategory').value = '';
+      document.getElementById('resultsContainer').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔭</div>
+          <p>Chưa có kết quả. Hãy chọn thiết bị và loại lỗi để bắt đầu chẩn đoán.</p>
+        </div>`;
+      document.getElementById('resultsCount').textContent = 'Chọn bộ lọc và nhấn Chẩn Đoán';
+    }
+
+    // ── OCR ──────────────────────────────────────────────────
+    function handleOCRUpload(event) {
+      ocrFile = event.target.files[0];
+      if (!ocrFile) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('ocrPreviewImg').src = e.target.result;
+        document.getElementById('ocrPreview').style.display = 'block';
+      };
+      reader.readAsDataURL(ocrFile);
+    }
+
+    // Drag and drop
+    const ocrZone = document.getElementById('ocrZone');
+    ocrZone.addEventListener('dragover', e => { e.preventDefault(); ocrZone.classList.add('dragover'); });
+    ocrZone.addEventListener('dragleave', () => ocrZone.classList.remove('dragover'));
+    ocrZone.addEventListener('drop', e => {
+      e.preventDefault(); ocrZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        ocrFile = file;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById('ocrPreviewImg').src = ev.target.result;
+          document.getElementById('ocrPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    async function submitOCR() {
+      if (!ocrFile) return;
+      const status = document.getElementById('ocrStatus');
+      status.innerHTML = '<div class="loading-state" style="padding:1rem;"><div class="spinner"></div><p>EasyOCR đang phân tích ảnh...</p></div>';
+
+      const formData = new FormData();
+      formData.append('file', ocrFile);
+
+      try {
+        const res = await fetch(`${API}/scan-error`, { method: 'POST', body: formData });
+        const data = await res.json();
+
+        status.innerHTML = `
+          <div style="margin-top:0.8rem; padding:0.8rem; background:rgba(124,252,0,0.05); border:1px solid rgba(124,252,0,0.15); border-radius:8px;">
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Mã lỗi phát hiện:</p>
+            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+              ${data.error_codes.length
+                ? data.error_codes.map(c => `<span class="badge badge-high">${c}</span>`).join('')
+                : '<span style="font-size:0.8rem; color:var(--text-muted);">Không tìm thấy mã lỗi</span>'}
+            </div>
+          </div>`;
+
+        if (data.results && data.results.length) {
+          renderErrors(data.results, data.matched_count);
+          toast(`OCR tìm thấy ${data.matched_count} kết quả!`, 'success');
+        } else {
+          toast('OCR không khớp lỗi nào trong CSDL.', 'error');
+        }
+      } catch {
+        status.innerHTML = '<p style="color:#ff453a; font-size:0.82rem; margin-top:0.5rem;">Lỗi kết nối server OCR.</p>';
+        toast('Không thể phân tích ảnh.', 'error');
+      }
+    }
+
+    // ── Demo Data (offline fallback) ──────────────────────────
+    function loadDemoData() {
+      const demo = [
+        { os_name: 'Windows 10' }, { os_name: 'Windows 11' },
+        { os_name: 'Android' }, { os_name: 'iOS' }
+      ];
+      window._allOS = demo;
+      filterOS();
+      const cats = ['Software', 'Hardware', 'Network', 'Performance', 'Storage', 'Battery'];
+      const sel = document.getElementById('selectCategory');
+      cats.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c; o.textContent = c; sel.appendChild(o);
+      });
+      ['Laptop','Smartphone'].forEach(d => {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        document.getElementById('selectDevice').appendChild(o);
+      });
+    }
+
+    function renderDemoErrors() {
+      const demo = [
+        { error_code: '0x0000007E', error_name: 'Blue Screen of Death – BSOD', description: 'Màn hình xanh chết chóc, thường do driver lỗi.', solution: '1. Khởi động Safe Mode\n2. Cập nhật driver\n3. Chạy sfc /scannow', severity: 'critical', device: 'Laptop', os: 'Windows 11', category: 'Software', scripts: [{script_name:'Windows Cleaner', script_type:'.bat'}] },
+        { error_code: 'NET-001', error_name: 'WiFi Không Kết Nối Được', description: 'Laptop không thể kết nối WiFi dù thấy tên mạng.', solution: '1. Chạy Network Troubleshooter\n2. Reset TCP/IP\n3. Cài lại driver WiFi', severity: 'high', device: 'Laptop', os: 'Windows 11', category: 'Network', scripts: [{script_name:'Network Reset', script_type:'.bat'}] },
+        { error_code: 'AND-003', error_name: 'Fix Lỗi Đăng Nhập WeChat', description: 'WeChat báo lỗi Login Failed.', solution: '1. Xóa cache WeChat\n2. Cài lại ứng dụng\n3. Dùng email backup', severity: 'medium', device: 'Smartphone', os: 'Android', category: 'Mobile App', scripts: [] },
+      ];
+      renderErrors(demo, demo.length);
+    }
+
+    function closeModal() {
+      document.getElementById('guideModal').classList.remove('open');
+    }
+
+    loadLookups();
+  </script>
+</body>
+</html>
